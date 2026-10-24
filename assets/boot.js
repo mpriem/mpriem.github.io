@@ -763,7 +763,6 @@
     });
     if (!nearest) return;
     typing = false;
-    pad.fullscreen();
     zoomOut().then(() => type(nearest.exe)).catch(ignoreOff);
   });
 

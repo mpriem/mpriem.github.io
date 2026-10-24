@@ -1,8 +1,9 @@
 // Phones have no keyboard for the PC, so a game run from the A:\> prompt
 // (boot.js) plays full screen with a stick on the left and one button on the
 // right. A short tutorial comes first. Swiping in from the left edge goes back
-// to the PC, and so do the browser's own back and leaving full screen, since
-// phones keep that edge swipe for themselves.
+// to the PC, and so does the phone's own back, since phones keep that edge
+// swipe for themselves. Phones only run the room installed as an app
+// (index.html), which has the whole screen already.
 (() => {
   'use strict';
 
@@ -16,7 +17,7 @@
   const EDGE = 24, SWIPE = 70;
 
   let canvas = null, controls = null, home = null;
-  let starting = null, wasFullscreen = false, pushed = false;
+  let starting = null, pushed = false;
 
   // ---------------------------------------------------------------- stick
 
@@ -86,10 +87,6 @@
     exit();
   });
 
-  addEventListener('fullscreenchange', () => {
-    if (canvas && wasFullscreen && !document.fullscreenElement) exit();
-  });
-
   function exit() {
     if (!canvas) return;
     close();
@@ -109,9 +106,25 @@
   }
 
   fade.addEventListener('animationend', () => fade.classList.remove('on'));
-  matchMedia('(orientation: portrait)').addEventListener('change', () => {
-    if (handheld.matches) fadeIn();
+
+  // ---------------------------------------------------------------- orientation
+
+  // Once turned sideways, the screen stays the way it was turned. Android
+  // lets an installed app lock it; Safari can't, so on an iPhone turning
+  // upright again still brings back the message to turn it.
+  const upright = matchMedia('(orientation: portrait)');
+
+  function lockSideways() {
+    const orientation = window.screen.orientation;
+    if (handheld.matches && !upright.matches) orientation?.lock?.(orientation.type).catch(() => {});
+  }
+
+  upright.addEventListener('change', () => {
+    if (!handheld.matches) return;
+    fadeIn();
+    lockSideways();
   });
+  lockSideways();
 
   // ---------------------------------------------------------------- tutorial
 
@@ -140,17 +153,11 @@
       pushed = false;
       history.back();
     }
-    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
   }
 
   window.pad = {
     // Called when the player leaves a game for the PC.
     onExit: null,
-
-    // Asked for when a link is tapped, while the tap still counts as one.
-    fullscreen() {
-      document.documentElement.requestFullscreen?.({ navigationUI: 'hide' }).catch(() => {});
-    },
 
     // Shows `canvas` filling the screen, with the controls steering `ctrls`
     // ({ stick(x, y), button(down) }) and the tutorial `lines` on top.
@@ -171,7 +178,6 @@
       tutorial.hidden = false;
       play.hidden = false;
       fadeIn();
-      wasFullscreen = !!document.fullscreenElement;
       history.pushState({ pad: true }, '');
       pushed = true;
       return new Promise(resolve => { starting = resolve; });
