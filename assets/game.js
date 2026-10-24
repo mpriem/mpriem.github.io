@@ -12,6 +12,9 @@
   const PC = { w: 1671, h: 941 };
   const GLASS = { x: 473, y: 137, w: 716, h: 483 };
   const MONITOR = { w: 890, h: 700 };
+  // Right edge of the tower's power button (boot.js), kept in view when the
+  // monitor allows.
+  const POWER_RIGHT = 1625;
   // Photo pixels per scene pixel: the canvas covers the glass with a little
   // to spare under the bezel. The glass is squarer than the canvas, so SIDE
   // columns on the left and right (and TOP rows top and bottom) end up behind
@@ -546,6 +549,7 @@
   let verb = 'walk';
   let verbHover = null;
   let leaving = null; // { t, url } while fading out through a door
+  let started = false; // ADVENTURE.EXE has been run
   const mouse = { x: -99, y: -99, visible: false };
 
   const image = new Image();
@@ -800,6 +804,7 @@
   });
 
   addEventListener('keydown', e => {
+    if (!started) return;
     if (e.key === '.' || e.key === 'Escape') { // skip a line, like in the old games
       kid.speech.shift();
       kid.speechT = 0;
@@ -821,10 +826,14 @@
     const place = (view, size, centre) => size <= view
       ? (view - size) / 2
       : Math.min(0, Math.max(view - size, view / 2 - centre));
+    let left = place(vw, pw, (GLASS.x + GLASS.w / 2) * s);
+    if (left + POWER_RIGHT * s > vw) {
+      left = Math.max(vw - POWER_RIGHT * s, vw - pw, -(GLASS.x + GLASS.w / 2 - MONITOR.w / 2) * s);
+    }
     const stage = document.getElementById('pc');
     stage.style.width = `${pw}px`;
     stage.style.height = `${ph}px`;
-    stage.style.left = `${place(vw, pw, (GLASS.x + GLASS.w / 2) * s)}px`;
+    stage.style.left = `${left}px`;
     stage.style.top = `${place(vh, ph, (GLASS.y + GLASS.h / 2) * s)}px`;
 
     // The canvas sits behind the photo, centred on the glass and covering it.
@@ -957,21 +966,28 @@
     requestAnimationFrame(frame);
   }
 
-  // The kid strolls in from the bottom of the screen and introduces himself.
-  kid.path = [[318, 288]];
-  kid.onArrive = () => {
-    kid.dir = 'front';
-    say([
-      'My name is Mark Priem, and I want to be a programmer!',
-      'Every candle-lit window on this island is one of my projects.',
-      'Try Look at, Use or Talk to on a house.'
-    ]);
-  };
-
   document.fonts.load(FONT).then(() => {
     fontReady = true;
     textCache.clear();
   }, () => { fontReady = true; });
 
-  requestAnimationFrame(frame);
+  // The island loads straight away, but only comes to life when boot.js runs
+  // ADVENTURE.EXE.
+  window.startAdventure = () => {
+    if (started) return;
+    started = true;
+    canvas.style.visibility = 'visible';
+    // The kid strolls in from the bottom of the screen and introduces himself.
+    kid.path = [[318, 288]];
+    kid.onArrive = () => {
+      kid.dir = 'front';
+      say([
+        'My name is Mark Priem, and I want to be a programmer!',
+        'Every candle-lit window on this island is one of my projects.',
+        'Try Look at, Use or Talk to on a house.'
+      ]);
+    };
+    last = performance.now();
+    requestAnimationFrame(frame);
+  };
 })();
