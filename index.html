@@ -95,12 +95,12 @@
       border: 0;
       border-radius: 50%;
     }
-    .power {
+    .power, .traced {
       background: transparent;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
     }
-    .power:focus {
+    .power:focus, .traced:focus {
       outline: none;
     }
     .power:active {
@@ -130,6 +130,63 @@
     }
     @keyframes beckon {
       50% { opacity: 1; }
+    }
+    /* Toys on the desk: the Walkman's play key and the Audi quattro. Their
+       glow is traced around the toy itself, in PC.webp pixels, and stays lit
+       while the toy is playing. */
+    .traced {
+      border-radius: 0;
+    }
+    .traced svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      opacity: 0;
+      filter: drop-shadow(0 0 4px rgba(255, 232, 180, 0.8));
+      animation: beckon 2.4s ease-in-out 3s infinite;
+      pointer-events: none;
+    }
+    .traced polygon {
+      fill: none;
+      stroke: rgba(255, 244, 214, 0.7);
+      stroke-width: 2px;
+      stroke-linejoin: round;
+      vector-effect: non-scaling-stroke;
+    }
+    .traced:hover svg, .traced:focus-visible svg, .traced[aria-pressed="true"] svg, .traced.on svg {
+      opacity: 1;
+      animation: none;
+    }
+    /* The quattro's headlights, flashed twice and twice again. */
+    .lamp {
+      pointer-events: none;
+      border-radius: 40%;
+      background: radial-gradient(closest-side, #fffef6, rgba(255, 248, 222, 0.9) 60%, transparent);
+      mix-blend-mode: screen;
+      opacity: 0;
+    }
+    .lamp::after {
+      content: '';
+      position: absolute;
+      inset: -180% -140%;
+      border-radius: 50%;
+      background: radial-gradient(closest-side, rgba(255, 246, 215, 0.5), transparent);
+    }
+    .lamp.flash {
+      animation: headlights 2s linear;
+    }
+    @keyframes headlights {
+      0%, 4% { opacity: 0; }
+      5%, 16% { opacity: 1; }
+      18%, 22% { opacity: 0; }
+      23%, 34% { opacity: 1; }
+      36%, 59% { opacity: 0; }
+      60%, 71% { opacity: 1; }
+      73%, 77% { opacity: 0; }
+      78%, 89% { opacity: 1; }
+      92%, 100% { opacity: 0; }
     }
     .led {
       pointer-events: none;
@@ -184,6 +241,18 @@
     </div>
     <img src="assets/PC.webp" alt="" width="1671" height="941">
     <button class="hw power" style="--x: 1568; --y: 577; --w: 86; --h: 86" aria-label="Switch on the computer"></button>
+    <button class="hw traced audi" style="--x: 1514; --y: 143.5; --w: 292; --h: 101" aria-label="Rev the Audi quattro">
+      <svg viewBox="1368 93 292 101" preserveAspectRatio="none" aria-hidden="true">
+        <polygon points="1370,190 1370,169 1376,151 1385,145.5 1442,131 1450,132.5 1476,107.5 1496,100 1497.5,96 1517.5,95.5 1520,98.5 1577.5,101 1607.5,112.5 1610,110 1652.5,103.5 1656.5,125 1651,140 1657.5,167.5 1654,176 1622.5,179 1520,182.5 1507.5,185 1435,187.5 1375,192"/>
+      </svg>
+    </button>
+    <span class="hw lamp" style="--x: 1384; --y: 159; --w: 13; --h: 11"></span>
+    <span class="hw lamp" style="--x: 1443; --y: 151; --w: 20; --h: 12"></span>
+    <button class="hw traced play" style="--x: 80.5; --y: 613; --w: 14; --h: 20" aria-label="Play 90s rock on the Walkman" aria-pressed="false">
+      <svg viewBox="73.5 603 14 20" preserveAspectRatio="none" aria-hidden="true">
+        <polygon points="74,604 86.5,605 86.5,621 74.5,622"/>
+      </svg>
+    </button>
     <span class="hw led red" id="led-power" style="--x: 1599.5; --y: 694.5; --w: 11; --h: 11"></span>
     <span class="hw led green" id="led-hdd" style="--x: 1599.5; --y: 717.5; --w: 11; --h: 11"></span>
     <span class="hw led green" id="led-floppy" style="--x: 1599.5; --y: 739; --w: 11; --h: 11"></span>
@@ -199,5 +268,6 @@
   <script src="assets/kid.js"></script>
   <script src="assets/game.js"></script>
   <script src="assets/boot.js"></script>
+  <script src="assets/desk.js"></script>
 </body>
 </html>
