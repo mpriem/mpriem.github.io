@@ -390,9 +390,30 @@
       #pc .power {
         display: none;
       }
+      /* A game running full screen gives way to the message, and runs on
+         behind it. */
+      #play {
+        display: none;
+      }
+    }
+    /* Turning a phone around, or a game going full screen and back: the new
+       picture fades in from black (pad.js). */
+    #fade {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      opacity: 0;
+      pointer-events: none;
+    }
+    #fade.on {
+      animation: fade 0.5s ease-out;
+    }
+    @keyframes fade {
+      from { opacity: 1; }
+      to { opacity: 0; }
     }
     @media (prefers-reduced-motion: reduce) {
-      #turn .phone {
+      #turn .phone, #fade.on {
         animation: none;
       }
     }
@@ -569,6 +590,7 @@
     <button id="button" aria-label="Select or fire"></button>
     <div id="tutorial"></div>
   </div>
+  <div id="fade"></div>
   <nav class="sr-only" aria-label="Projects">
     <ul id="repo-list"></ul>
   </nav>

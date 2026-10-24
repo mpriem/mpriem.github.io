@@ -96,6 +96,22 @@
     window.pad.onExit?.();
   }
 
+  // ---------------------------------------------------------------- fade
+
+  // The screen fades in from black (index.html) whenever a game goes full
+  // screen, gives way to the PC again, or the phone is turned around.
+  const fade = document.getElementById('fade');
+
+  function fadeIn() {
+    fade.classList.remove('on');
+    void fade.offsetWidth;
+    fade.classList.add('on');
+  }
+
+  fade.addEventListener('animationend', () => fade.classList.remove('on'));
+  matchMedia('(hover: none) and (pointer: coarse) and (orientation: portrait)')
+    .addEventListener('change', fadeIn);
+
   // ---------------------------------------------------------------- tutorial
 
   tutorial.addEventListener('click', () => {
@@ -118,6 +134,7 @@
     home.parent.insertBefore(canvas, home.next);
     canvas = controls = home = null;
     play.hidden = true;
+    fadeIn();
     if (pushed) {
       pushed = false;
       history.back();
@@ -152,6 +169,7 @@
       }));
       tutorial.hidden = false;
       play.hidden = false;
+      fadeIn();
       wasFullscreen = !!document.fullscreenElement;
       history.pushState({ pad: true }, '');
       pushed = true;
