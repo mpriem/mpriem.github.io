@@ -64,6 +64,16 @@
       filter: brightness(1);
       transition: filter 1.4s ease-out;
     }
+    /* DOOM.EXE in graphics mode, inside the same black border as the text. */
+    #doom {
+      position: absolute;
+      left: 5%;
+      top: 6%;
+      width: 90%;
+      height: 88%;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
     #dos-input {
       box-sizing: border-box;
       margin: 0;
@@ -232,6 +242,7 @@
     <canvas id="game" aria-label="A moonlit pixel-art island. Each candle-lit house is one of Mark Priem's GitHub projects."></canvas>
     <div id="glass">
       <canvas id="dos" aria-hidden="true"></canvas>
+      <canvas id="doom" aria-label="DOOM" hidden></canvas>
       <input id="dos-input" aria-label="MS-DOS prompt. Type HELP for a list of commands."
              autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" disabled>
     </div>
@@ -263,6 +274,7 @@
   </noscript>
   <script src="assets/kid.js"></script>
   <script src="assets/game.js"></script>
+  <script src="assets/doom.js"></script>
   <script src="assets/boot.js"></script>
   <script src="assets/desk.js"></script>
 </body>

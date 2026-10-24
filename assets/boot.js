@@ -612,6 +612,8 @@
     input.value = '';
     input.disabled = true;
     window.stopAdventure();
+    doomGame?.stop();
+    doomGame = null;
     crt.hidden = input.hidden = false;
     // Only a tube that was showing something collapses.
     if (screen.on || crt.classList.contains('on')) screen.collapse = performance.now();
@@ -631,13 +633,10 @@
   // ---------------------------------------------------------------- DOS
 
   const FILES = [
-    ['COMMAND', 'COM', 54645, '05-31-94', '6:22a'],
-    ['HIMEM', 'SYS', 29136, '05-31-94', '6:22a'],
-    ['CONFIG', 'SYS', 23, '10-24-98', '9:12p'],
-    ['AUTOEXEC', 'BAT', 71, '10-24-98', '9:12p'],
-    ['ADVENTUR', 'EXE', 412318, '10-24-98', '9:15p']
+    ['ADVENTUR', 'EXE', 412318, '10-24-98', '9:15p'],
+    ['DOOM', 'EXE', 709905, '02-01-95', '1:09a']
   ];
-  const BYTES_FREE = 880640;
+  const BYTES_FREE = 334848;
   const num = n => n.toLocaleString('en-US');
 
   let typing = false, inputRow = 0, inputCol = 0;
@@ -690,8 +689,13 @@
       prompt();
       return;
     }
-    if (isAdventure(cmd)) {
+    const exe = program(cmd);
+    if (exe === 'ADVENTUR') {
       await launch();
+      return;
+    }
+    if (exe === 'DOOM') {
+      await doom();
       return;
     }
     if (cmd === 'HELP') {
@@ -707,10 +711,11 @@
   }
 
   // DOS keeps to 8.3 names and quietly cuts longer ones short, so
-  // ADVENTURE.EXE runs ADVENTUR.EXE.
-  function isAdventure(cmd) {
+  // ADVENTURE.EXE runs ADVENTUR.EXE. Returns the name of the program to run.
+  function program(cmd) {
     const [name, ext = ''] = cmd.replace(/^A:\\?/, '').split('.');
-    return name.slice(0, 8) === 'ADVENTUR' && (ext === '' || ext === 'EXE');
+    const file = FILES.find(f => f[0] === name.slice(0, 8) && f[1] === 'EXE');
+    return file && (ext === '' || ext === 'EXE') ? file[0] : null;
   }
 
   function help() {
@@ -719,6 +724,7 @@
     println('DIR            Lists the files on the disk.');
     println('HELP           Shows this list.');
     println("ADVENTURE.EXE  Starts the adventure on Mark Priem's island.");
+    println('DOOM.EXE       Starts DOOM. Arrows move, Ctrl fires, Space opens doors.');
   }
 
   function dir() {
@@ -750,6 +756,46 @@
   function startGame() {
     crt.hidden = input.hidden = true;
     window.startAdventure();
+  }
+
+  let doomGame = null;
+
+  // DOOM loads from the floppy, prints its start-up in text mode, then
+  // switches the card to graphics mode and has the screen to itself until
+  // it is quit.
+  async function doom() {
+    let game;
+    try {
+      [game] = await Promise.all([window.loadDoom(), floppy(2600)]);
+    } catch (e) {
+      ignoreOff(e);
+      console.error(e);
+      println('Error reading drive A');
+      println();
+      prompt();
+      return;
+    }
+    for (const line of game.log) {
+      println(line);
+      await wait(rand(30, 110));
+    }
+    await floppy(900);
+    screen.on = screen.cursor = false;
+    screen.dirty = true;
+    sound.relay();
+    await wait(650);
+    doomGame = game;
+    game.play(() => quitDoom().catch(ignoreOff));
+  }
+
+  // Back from DOOM: the monitor clicks back into text mode, at the prompt.
+  async function quitDoom() {
+    doomGame = null;
+    sound.relay();
+    await wait(650);
+    cls();
+    screen.on = true;
+    prompt();
   }
 
   // ---------------------------------------------------------------- start
