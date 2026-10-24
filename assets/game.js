@@ -862,10 +862,26 @@
   // the photo at its width.
   const client = document.getElementById('client');
 
+  // The photo runs under a phone's notch and rounded corners (index.html
+  // covers the whole screen), but the power button has to stay clear of
+  // them. They're measured as the padding of an empty box.
+  const safe = document.createElement('div');
+  safe.style.cssText = 'position: absolute; visibility: hidden; pointer-events: none; padding: '
+    + 'env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)';
+  client.append(safe);
+
   function fit() {
     const phone = handheld.matches, tall = phone && upright.matches;
     client.style.height = tall ? `${PC.h * client.clientWidth / BEZEL.w}px` : '';
     const vw = client.clientWidth, vh = client.clientHeight;
+    // The part of the screen clear of the notch; upright, the scene sits in a
+    // window well inside it.
+    const inset = getComputedStyle(safe), clear = tall
+      ? { left: 0, top: 0, right: vw, bottom: vh }
+      : {
+        left: parseFloat(inset.paddingLeft), top: parseFloat(inset.paddingTop),
+        right: vw - parseFloat(inset.paddingRight), bottom: vh - parseFloat(inset.paddingBottom)
+      };
     const s = tall ? vw / BEZEL.w
       : phone ? Math.max(vw / PC.w, vh / PC.h)
       : Math.min(Math.max(vw / PC.w, vh / PC.h), vw / MONITOR.w, vh / MONITOR.h);
@@ -875,8 +891,8 @@
       ? (view - size) / 2
       : Math.min(0, Math.max(view - size, view / 2 - centre));
     let left = tall ? -BEZEL.x * s : place(vw, pw, (GLASS.x + GLASS.w / 2) * s);
-    if (!tall && left + POWER_RIGHT * s > vw) {
-      left = Math.max(vw - POWER_RIGHT * s, vw - pw, -(GLASS.x + GLASS.w / 2 - MONITOR.w / 2) * s);
+    if (!tall && left + POWER_RIGHT * s > clear.right) {
+      left = Math.max(clear.right - POWER_RIGHT * s, vw - pw, -(GLASS.x + GLASS.w / 2 - MONITOR.w / 2) * s);
     }
     const stage = document.getElementById('pc');
     stage.style.width = `${pw}px`;
@@ -885,10 +901,11 @@
     const middle = phone && !tall ? KEYBOARD / 2 : GLASS.y + GLASS.h / 2;
     const top = place(vh, ph, middle * s);
     stage.style.top = `${top}px`;
-    // With the tower's power button cut off, the monitor's own stands in
-    // (index.html).
-    const cut = (c, view, offset) => offset + (c - POWER.r) * s < 0 || offset + (c + POWER.r) * s > view;
-    stage.classList.toggle('tower-hidden', cut(POWER.x, vw, left) || cut(POWER.y, vh, top));
+    // With the tower's power button cut off, or under the notch, the
+    // monitor's own stands in (index.html).
+    const cut = (c, from, to, offset) => offset + (c - POWER.r) * s < from || offset + (c + POWER.r) * s > to;
+    stage.classList.toggle('tower-hidden',
+      cut(POWER.x, clear.left, clear.right, left) || cut(POWER.y, clear.top, clear.bottom, top));
 
     // The canvas sits behind the photo, centred on the glass and covering it.
     const cw = W * FILL * s, ch = (H + BAR) * FILL * s;
@@ -903,7 +920,9 @@
     glass.left = `${GLASS.x * s}px`;
     glass.top = `${GLASS.y * s}px`;
   }
-  addEventListener('resize', fit);
+  // Not on resize: a phone being turned fires that before the page is laid
+  // out again, so fit() would read the old sizes. The body is the screen.
+  new ResizeObserver(fit).observe(document.body);
   fit();
 
   // ---------------------------------------------------------------- frame
