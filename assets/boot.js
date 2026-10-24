@@ -896,6 +896,9 @@
       await ready();
       return;
     }
+    println('DOOM engine: wasmdoom by theMagicalKarp (GPL-2.0)');
+    println('github.com/theMagicalKarp/wasmdoom');
+    println();
     for (const line of game.log) {
       println(line);
       await wait(rand(30, 110));

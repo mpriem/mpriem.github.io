@@ -1037,7 +1037,7 @@
     kid.onArrive = () => {
       kid.dir = 'front';
       say([
-        'My name is Mark Priem, and I want to be a programmer!',
+        'My name is Mark Priem, and I want to be an engineer!',
         'Every candle-lit window on this island has a story to tell about me.'
       ]);
     };
