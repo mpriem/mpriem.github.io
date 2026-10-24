@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240">
+  <!-- A 90s Memphis tile for behind the photo and the full screen games
+       (index.html). Shapes keep clear of the edges so the tile repeats
+       without seams. -->
+  <rect width="240" height="240" fill="#1a1030"/>
+  <g fill="none" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M16 38q10-14 20 0t20 0t20 0t20 0" stroke="#2bd4c4"/>
+    <path d="M146 30l11 13l11-13l11 13l11-13l11 13" stroke="#ff4fa3"/>
+    <path d="M58 156l22-38l22 38z" stroke="#ffcc33"/>
+    <circle cx="188" cy="118" r="17" stroke="#8b6bff"/>
+    <path d="M132 210q10-14 20 0t20 0t20 0" stroke="#2bd4c4"/>
+    <path d="M18 116l10 10m0-10l-10 10" stroke="#ffcc33"/>
+    <path d="M206 186a14 14 0 0 1 28 0" stroke="#ff4fa3"/>
+  </g>
+  <g>
+    <path d="M114 66l15 26h-30z" fill="#ff4fa3"/>
+    <rect x="30" y="196" width="16" height="16" fill="#8b6bff" transform="rotate(22 38 204)"/>
+    <circle cx="224" cy="72" r="6" fill="#2bd4c4"/>
+    <circle cx="96" cy="218" r="5" fill="#ffcc33"/>
+    <path d="M156 152h26v8h-26z" fill="#2bd4c4" transform="rotate(-35 169 156)"/>
+  </g>
+  <g fill="#e8e0ff" opacity="0.5">
+    <circle cx="140" cy="100" r="2"/><circle cx="150" cy="100" r="2"/><circle cx="160" cy="100" r="2"/>
+    <circle cx="140" cy="110" r="2"/><circle cx="150" cy="110" r="2"/><circle cx="160" cy="110" r="2"/>
+    <circle cx="140" cy="120" r="2"/><circle cx="150" cy="120" r="2"/><circle cx="160" cy="120" r="2"/>
+    <circle cx="60" cy="70" r="2"/><circle cx="70" cy="76" r="2"/><circle cx="54" cy="84" r="2"/>
+    <circle cx="200" cy="230" r="2"/><circle cx="20" cy="160" r="2"/><circle cx="110" cy="176" r="2"/>
+  </g>
+</svg>

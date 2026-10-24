@@ -7,9 +7,30 @@
   'use strict';
 
   const COLS = 80, ROWS = 25;
-  const GRAY = '#aaaaaa', WHITE = '#ffffff', CYAN = '#55ffff', YELLOW = '#ffff55';
+  const GRAY = '#aaaaaa', WHITE = '#ffffff', CYAN = '#55ffff', YELLOW = '#ffff55', BLUE = '#5555ff';
   const PROMPT = 'A:\\>';
   const DEBUG = new URLSearchParams(location.search).has('debug');
+
+  // Phones have no keyboard for the prompt (index.html removes its input):
+  // DOS lists the disk by itself, and its programs are links that run full
+  // screen with pad.js's controls. The same query is in index.html.
+  const touch = matchMedia('(hover: none) and (pointer: coarse)');
+  // Listed, the links are zoomed in on this many times, over this long.
+  const ZOOM = 5, ZOOM_MS = 900;
+  const TUTORIAL = {
+    adventure: [
+      'MOVE THE CROSSHAIR WITH THE STICK ON THE LEFT.',
+      'THE BUTTON ON THE RIGHT CLICKS: PICK A VERB, THEN A HOUSE.',
+      'SWIPE IN FROM THE LEFT EDGE TO GO BACK TO THE PC.',
+      'TAP TO START'
+    ],
+    doom: [
+      'WALK AND TURN WITH THE STICK ON THE LEFT.',
+      'THE BUTTON ON THE RIGHT SHOOTS, OPENS DOORS AND PICKS MENU ITEMS.',
+      'SWIPE IN FROM THE LEFT EDGE TO GO BACK TO THE PC.',
+      'TAP TO START'
+    ]
+  };
 
   // VT323 is drawn this many cell heights tall, its baseline this far down
   // the cell, and the picture keeps this much black border inside the tube.
@@ -284,6 +305,8 @@
   // An 80x25 text mode screen, as a character and a colour per cell.
   const screen = {
     chars: [], colors: [],
+    links: [], // per row: the link on it, if any, as { col, len, exe }
+    zoom: null, // phones: zooming in on the links, or back out, as { row, start, out }
     row: 0, col: 0,
     on: false, cursor: false, logo: false, dirty: true,
     collapse: null // when the picture started collapsing, after switching off
@@ -295,6 +318,8 @@
   function cls() {
     screen.chars = Array.from({ length: ROWS }, blankRow);
     screen.colors = Array.from({ length: ROWS }, grayRow);
+    screen.links = Array(ROWS).fill(null);
+    screen.zoom = null;
     screen.row = screen.col = 0;
     screen.logo = false;
     screen.dirty = true;
@@ -307,6 +332,8 @@
       screen.chars.push(blankRow());
       screen.colors.shift();
       screen.colors.push(grayRow());
+      screen.links.shift();
+      screen.links.push(null);
       screen.row = ROWS - 1;
     }
   }
@@ -326,6 +353,12 @@
   }
 
   const println = (text = '', color) => print(text + '\n', color);
+
+  // A link on a phone's screen: tapping it runs the program `exe`.
+  function printLink(text, exe) {
+    screen.links[screen.row] = { col: screen.col, len: text.length, exe };
+    print(text, BLUE);
+  }
 
   function printAt(col, row, text, color = GRAY) {
     [...text].forEach((ch, i) => {
@@ -378,6 +411,23 @@
     ctx.restore();
   }
 
+  // The part of the screen on show, as a canvas pixel offset and a scale:
+  // all of it, or on a phone ZOOM times closer to screen.zoom.row, from the
+  // left edge of the text. The zoom eases in around the one point that stays
+  // put between the two.
+  function view(w, h) {
+    if (!screen.zoom) return { x: 0, y: 0, z: 1 };
+    const ox = w * BORDER.x, oy = h * BORDER.y;
+    const cw = (w - 2 * ox) / COLS, chh = (h - 2 * oy) / ROWS;
+    const x = Math.max(0, ox - cw);
+    const y = Math.min(h - h / ZOOM, Math.max(0, oy + screen.zoom.row * chh - h / ZOOM / 2));
+    let t = Math.min(1, (performance.now() - screen.zoom.start) / ZOOM_MS);
+    if (screen.zoom.out) t = 1 - t;
+    const z = ZOOM ** (t * t * (3 - 2 * t));
+    const k = ZOOM / (ZOOM - 1) * (1 - 1 / z);
+    return { x: x * k, y: y * k, z };
+  }
+
   function draw() {
     const w = crt.width, h = crt.height;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -388,13 +438,15 @@
     if (screen.collapse !== null) drawCollapse(w, h);
     if (!screen.on) return;
 
+    const v = view(w, h);
+    ctx.setTransform(v.z, 0, 0, v.z, -v.x * v.z, -v.y * v.z);
     const ox = w * BORDER.x, oy = h * BORDER.y;
     const cw = (w - 2 * ox) / COLS, chh = (h - 2 * oy) / ROWS;
     ctx.font = `${Math.round(chh * FONT_SCALE)}px VT323, monospace`;
     ctx.textBaseline = 'alphabetic';
     const sx = cw / ctx.measureText('M').width;
     // Phosphor bloom.
-    ctx.shadowBlur = cw * 0.6;
+    ctx.shadowBlur = cw * 0.6 * v.z;
 
     for (let r = 0; r < ROWS; r++) {
       const y = oy + r * chh, chars = screen.chars[r], colors = screen.colors[r];
@@ -416,6 +468,12 @@
         ctx.scale(sx, 1);
         ctx.fillText(run, 0, 0);
         ctx.restore();
+      }
+      const link = screen.links[r];
+      if (link) {
+        ctx.fillStyle = BLUE;
+        ctx.shadowColor = BLUE + '99';
+        ctx.fillRect(ox + link.col * cw, y + chh * 0.86, link.len * cw, Math.max(1, chh * 0.08));
       }
     }
 
@@ -465,6 +523,7 @@
       if (screen.cursor) screen.dirty = true;
     }
     if (typing && inputCol + (input.selectionStart ?? input.value.length) !== screen.col) showInput();
+    if (screen.zoom && now - screen.zoom.start < ZOOM_MS + 100) screen.dirty = true;
     if (screen.dirty) {
       screen.dirty = false;
       draw();
@@ -595,12 +654,14 @@
     println('HIMEM is testing extended memory...done.');
     println();
     await floppy(1100);
-    println('Type HELP for a list of commands.');
-    println();
+    if (!touch.matches) {
+      println('Type HELP for a list of commands.');
+      println();
+    }
     input.disabled = false;
     input.maxLength = COLS - PROMPT.length - 1;
     input.focus({ preventScroll: true });
-    prompt();
+    await ready();
   }
 
   function powerOff() {
@@ -611,6 +672,7 @@
     typing = false;
     input.value = '';
     input.disabled = true;
+    pad.close();
     window.stopAdventure();
     doomGame?.stop();
     doomGame = null;
@@ -649,6 +711,61 @@
     screen.cursor = true;
     typing = true;
   }
+
+  // At the prompt after booting or a game. A phone can't type, so there DOS
+  // types DIR itself, to put the programs on the screen as links.
+  async function ready() {
+    prompt();
+    if (!touch.matches) return;
+    await type('DIR');
+    // Zoomed in, the links are big enough to tap.
+    const first = screen.links.findIndex(Boolean);
+    if (first < 0) return;
+    await wait(500);
+    screen.zoom = { row: first + 1, start: performance.now(), out: false };
+  }
+
+  // Back to the whole screen, from however far the zoom got.
+  async function zoomOut() {
+    if (!screen.zoom) return;
+    const now = performance.now(), t = Math.min(1, (now - screen.zoom.start) / ZOOM_MS);
+    screen.zoom = { ...screen.zoom, start: now - (1 - t) * ZOOM_MS, out: true };
+    await wait(t * ZOOM_MS);
+    screen.zoom = null;
+    screen.dirty = true;
+  }
+
+  // Keys a line in at the prompt by itself, then runs it.
+  async function type(line) {
+    typing = false;
+    for (const ch of line) {
+      await wait(rand(90, 180));
+      sound.key();
+      input.value += ch;
+      showInput();
+    }
+    await wait(250);
+    sound.key();
+    await run(input.value);
+  }
+
+  // A tap goes to the nearest link up to a row and a half away, through the
+  // zoom.
+  crt.addEventListener('click', e => {
+    if (!typing || !touch.matches) return;
+    const r = crt.getBoundingClientRect(), v = view(crt.width, crt.height);
+    const py = v.y + (e.clientY - r.top) / r.height * crt.height / v.z;
+    const y = (py / crt.height - BORDER.y) / (1 - 2 * BORDER.y) * ROWS;
+    let nearest = null;
+    screen.links.forEach((link, row) => {
+      const d = Math.abs(y - row - 0.5);
+      if (link && d < 1.5 && !(nearest?.d <= d)) nearest = { d, exe: link.exe };
+    });
+    if (!nearest) return;
+    typing = false;
+    pad.fullscreen();
+    zoomOut().then(() => type(nearest.exe)).catch(ignoreOff);
+  });
 
   // The typed command lives in the hidden input; mirror it onto the screen.
   function showInput() {
@@ -735,7 +852,10 @@
     println(' Directory of A:\\');
     println();
     for (const [name, ext, size, date, time] of FILES) {
-      println(`${name.padEnd(8)} ${ext.padEnd(3)} ${num(size).padStart(13)} ${date}  ${time.padStart(6)}`);
+      const file = `${name.padEnd(8)} ${ext.padEnd(3)}`;
+      if (touch.matches && ext === 'EXE') printLink(file, name);
+      else print(file);
+      println(` ${num(size).padStart(13)} ${date}  ${time.padStart(6)}`);
     }
     println(`${String(FILES.length).padStart(9)} file(s)${num(total).padStart(15)} bytes`);
     println(`${num(BYTES_FREE).padStart(32)} bytes free`);
@@ -749,6 +869,7 @@
     screen.dirty = true;
     sound.relay();
     await wait(650);
+    if (touch.matches && !await pad.open(document.getElementById('game'), window.adventurePad, TUTORIAL.adventure)) return;
     startGame();
     sound.settle();
   }
@@ -772,9 +893,12 @@
       console.error(e);
       println('Error reading drive A');
       println();
-      prompt();
+      await ready();
       return;
     }
+    println('DOOM engine: wasmdoom by theMagicalKarp (GPL-2.0)');
+    println('github.com/theMagicalKarp/wasmdoom');
+    println();
     for (const line of game.log) {
       println(line);
       await wait(rand(30, 110));
@@ -785,18 +909,30 @@
     sound.relay();
     await wait(650);
     doomGame = game;
+    // On a phone DOOM's 320x200 fills the screen as it filled a 4:3 tube.
+    if (touch.matches && !await pad.open(document.getElementById('doom'), game, TUTORIAL.doom, 4 / 3)) return;
     game.play(() => quitDoom().catch(ignoreOff));
   }
 
   // Back from DOOM: the monitor clicks back into text mode, at the prompt.
   async function quitDoom() {
     doomGame = null;
+    pad.close();
     sound.relay();
     await wait(650);
     cls();
     screen.on = true;
-    prompt();
+    await ready();
   }
+
+  // Swiped back to the PC from a game on a phone: the same, from either game.
+  async function backToPC() {
+    doomGame?.stop();
+    window.stopAdventure();
+    crt.hidden = input.hidden = false;
+    await quitDoom();
+  }
+  pad.onExit = () => backToPC().catch(ignoreOff);
 
   // ---------------------------------------------------------------- start
 
@@ -804,7 +940,10 @@
   new ResizeObserver(resize).observe(crt);
   document.fonts.load('20px VT323').then(() => { screen.dirty = true; }, () => {});
 
-  powerButtons.forEach(b => b.addEventListener('click', togglePower));
+  // The monitor's button only switches on (index.html).
+  powerButtons.forEach(b => b.addEventListener('click', () => {
+    if (!on || !b.classList.contains('monitor')) togglePower();
+  }));
   requestAnimationFrame(frame);
   if (DEBUG) {
     // Straight to the island while working on it.
