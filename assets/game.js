@@ -5,6 +5,21 @@
   'use strict';
 
   const W = 549, H = 306, BAR = 38;
+
+  // The canvas plays behind the monitor in PC.webp, whose glass is cut out.
+  // Measured in that photo's pixels: the photo, the glass opening, and the
+  // whole monitor (which should always stay in view).
+  const PC = { w: 1671, h: 941 };
+  const GLASS = { x: 473, y: 137, w: 716, h: 483 };
+  const MONITOR = { w: 890, h: 700 };
+  // Photo pixels per scene pixel: the canvas covers the glass with a little
+  // to spare under the bezel. The glass is squarer than the canvas, so SIDE
+  // columns on the left and right (and TOP rows top and bottom) end up behind
+  // the bezel; the interface keeps clear of them.
+  const FILL = Math.max(GLASS.w / W, GLASS.h / (H + BAR)) * 1.02;
+  const SIDE = Math.ceil((W - GLASS.w / FILL) / 2);
+  const TOP = Math.ceil((H + BAR - GLASS.h / FILL) / 2);
+  const inView = p => p.x >= SIDE && p.x < W - SIDE && p.y >= TOP && p.y < H + BAR - TOP;
   const GRID = { x: 7, y: 5, size: 10 }; // home.png is painted in 10px blocks, offset by (7,5)
   const USER = 'mpriem';
   const SITE_REPO = 'mpriem.github.io';
@@ -42,7 +57,7 @@
     { id: 'look', label: 'Look at', key: 'l', col: 1, row: 0 },
     { id: 'use',  label: 'Use',     key: 'u', col: 0, row: 1 },
     { id: 'talk', label: 'Talk to', key: 't', col: 1, row: 1 }
-  ].map(v => ({ ...v, x: 4 + v.col * 72, y: H + 15 + v.row * 11, w: 68, h: 10 }));
+  ].map(v => ({ ...v, x: SIDE + 8 + v.col * 72, y: H + 13 + v.row * 11, w: 68, h: 10 }));
 
   // Used when the GitHub API is unreachable or rate limited.
   const FALLBACK_REPOS = [
@@ -517,7 +532,7 @@
     const imgs = lines.map(l => textImage(l, color));
     let y = Math.max(0, bottom - imgs.length * 9);
     for (const img of imgs) {
-      ctx.drawImage(img, Math.round(clamp(cx - img.width / 2, 0, W - img.width)), Math.round(y));
+      ctx.drawImage(img, Math.round(clamp(cx - img.width / 2, SIDE + 4, W - SIDE - 4 - img.width)), Math.round(y));
       y += 9;
     }
   }
@@ -747,8 +762,16 @@
     };
   }
 
+  // The canvas reaches under the bezel; there it is just part of the photo.
   canvas.addEventListener('pointermove', e => {
     const p = toScene(e);
+    canvas.style.cursor = inView(p) ? '' : 'default';
+    if (!inView(p)) {
+      mouse.visible = false;
+      hover = null;
+      verbHover = null;
+      return;
+    }
     mouse.x = p.x;
     mouse.y = p.y;
     mouse.visible = e.pointerType === 'mouse';
@@ -763,7 +786,7 @@
 
   canvas.addEventListener('click', e => {
     const p = toScene(e);
-    if (!background || !walk || leaving) return;
+    if (!background || !walk || leaving || !inView(p)) return;
     if (p.y >= H) {
       const v = verbAt(p.x, p.y);
       if (v) verb = v.id;
@@ -791,9 +814,31 @@
   addEventListener('pageshow', e => { if (e.persisted) leaving = null; });
 
   function fit() {
-    const s = Math.min(innerWidth / W, innerHeight / (H + BAR));
-    canvas.style.width = `${Math.floor(W * s)}px`;
-    canvas.style.height = `${Math.floor((H + BAR) * s)}px`;
+    const vw = innerWidth, vh = innerHeight;
+    const s = Math.min(Math.max(vw / PC.w, vh / PC.h), vw / MONITOR.w, vh / MONITOR.h);
+    const pw = PC.w * s, ph = PC.h * s;
+    // Centre on the screen, but never pull the photo's edge into the window.
+    const place = (view, size, centre) => size <= view
+      ? (view - size) / 2
+      : Math.min(0, Math.max(view - size, view / 2 - centre));
+    const stage = document.getElementById('pc');
+    stage.style.width = `${pw}px`;
+    stage.style.height = `${ph}px`;
+    stage.style.left = `${place(vw, pw, (GLASS.x + GLASS.w / 2) * s)}px`;
+    stage.style.top = `${place(vh, ph, (GLASS.y + GLASS.h / 2) * s)}px`;
+
+    // The canvas sits behind the photo, centred on the glass and covering it.
+    const cw = W * FILL * s, ch = (H + BAR) * FILL * s;
+    canvas.style.width = `${cw}px`;
+    canvas.style.height = `${ch}px`;
+    canvas.style.left = `${(GLASS.x + GLASS.w / 2) * s - cw / 2}px`;
+    canvas.style.top = `${(GLASS.y + GLASS.h / 2) * s - ch / 2}px`;
+
+    const glass = document.getElementById('glass').style;
+    glass.width = `${GLASS.w * s}px`;
+    glass.height = `${GLASS.h * s}px`;
+    glass.left = `${GLASS.x * s}px`;
+    glass.top = `${GLASS.y * s}px`;
   }
   addEventListener('resize', fit);
   fit();
@@ -821,7 +866,7 @@
     // Details of the hovered repo, to the right of the verbs.
     if (hover) {
       const { description, language, stars } = hover.repo;
-      const left = 156, maxChars = Math.floor((W - left - 4) / CHAR_W);
+      const left = VERBS[0].x + 152, maxChars = Math.floor((W - SIDE - 8 - left) / CHAR_W);
       const head = [language, stars ? `*${stars}` : ''].filter(Boolean).join('  ');
       const lines = wrap([head, description].filter(Boolean).join('  '), maxChars);
       if (lines.length > 2) lines[1] = lines[1].slice(0, maxChars - 3).trimEnd() + '...';

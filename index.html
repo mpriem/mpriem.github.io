@@ -16,10 +16,30 @@
       background: #000;
       overflow: hidden;
     }
-    body {
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    /* The island runs on the old Philips monitor in PC.webp, whose glass is
+       cut out: the canvas sits behind the photo, its edges tucked under the
+       bezel. game.js sizes and places #pc, #game and #glass. */
+    #pc {
+      position: absolute;
+    }
+    #pc img, #game, #glass {
+      position: absolute;
+    }
+    #pc img {
+      display: block;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      user-select: none;
+    }
+    #glass {
+      pointer-events: none;
+      /* scanlines and a curved-glass vignette */
+      background:
+        repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.14) 0 1px, transparent 1px 3px),
+        radial-gradient(ellipse at center, transparent 60%, rgba(0, 0, 0, 0.45) 100%);
     }
     #game {
       display: block;
@@ -45,7 +65,11 @@
   </style>
 </head>
 <body>
-  <canvas id="game" aria-label="A moonlit pixel-art island. Each candle-lit house is one of Mark Priem's GitHub projects."></canvas>
+  <div id="pc">
+    <canvas id="game" aria-label="A moonlit pixel-art island. Each candle-lit house is one of Mark Priem's GitHub projects."></canvas>
+    <div id="glass"></div>
+    <img src="assets/PC.webp" alt="" width="1671" height="941">
+  </div>
   <nav class="sr-only" aria-label="Projects">
     <ul id="repo-list"></ul>
   </nav>
