@@ -4,6 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" href="data:,">
+  <!-- Phones play the room as an app on the home screen (install.js). -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Mark's Room">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <title>Mark's Room</title>
   <meta name="description" content="Step into Mark Priem's 90s bedroom: boot the PC, play the island adventure or DOOM, and discover his interests and projects along the way.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -29,6 +34,20 @@
     /* The island runs on the old Philips monitor in PC.webp, whose glass is
        cut out: the canvas sits behind the photo, its edges tucked under the
        bezel. game.js sizes and places #pc, #game and #glass. */
+    /* Phones and tablets. The scripts read this rather than asking
+       matchMedia, which Safari's fingerprinting protection can answer
+       differently from the CSS. */
+    @media (hover: none) and (pointer: coarse) {
+      :root {
+        --handheld: 1;
+      }
+    }
+    /* Opened from the home screen as an app rather than in a browser tab. */
+    @media (display-mode: standalone), (display-mode: fullscreen) {
+      :root {
+        --installed: 1;
+      }
+    }
     #window, #client {
       position: absolute;
       inset: 0;
@@ -419,7 +438,7 @@
     }
     /* Phones have no keyboard for the prompt, so its input goes: DOS types
        by itself and the programs it lists are tapped on the screen instead
-       (boot.js). The same query is in boot.js. */
+       (boot.js). */
     @media (hover: none) and (pointer: coarse) {
       #dos-input {
         display: none;
@@ -526,6 +545,25 @@
     }
     noscript a { color: #f6ee6a; }
   </style>
+  <script>
+    // Whether the CSS took this for a phone or tablet (--handheld above), and
+    // whether it runs as an app from the home screen (--installed above, or
+    // Safari's own flag).
+    const cssFlag = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim() === '1';
+    window.handheld = {
+      get matches() {
+        return cssFlag('--handheld');
+      }
+    };
+    window.installed = cssFlag('--installed') || navigator.standalone === true;
+    // Only phones and tablets are offered the app; a PC plays in the browser.
+    if (handheld.matches) {
+      const manifest = document.createElement('link');
+      manifest.rel = 'manifest';
+      manifest.href = 'manifest.webmanifest';
+      document.head.append(manifest);
+    }
+  </script>
 </head>
 <body>
   <!-- Upright on a phone, the scene sits in a Windows 95 window; otherwise
@@ -598,11 +636,18 @@
     This island needs JavaScript. Meanwhile, the projects are on
     <a href="https://github.com/mpriem">github.com/mpriem</a>.
   </noscript>
-  <script src="assets/kid.js"></script>
-  <script src="assets/game.js"></script>
-  <script src="assets/doom.js"></script>
-  <script src="assets/pad.js"></script>
-  <script src="assets/boot.js"></script>
-  <script src="assets/desk.js"></script>
+  <script>
+    // A phone in a browser tab gets Setup, which shows how to install the
+    // room as an app, instead of the room itself.
+    const scripts = handheld.matches && !installed
+      ? ['install']
+      : ['kid', 'game', 'doom', 'pad', 'boot', 'desk'];
+    for (const name of scripts) {
+      const script = document.createElement('script');
+      script.src = `assets/${name}.js`;
+      script.async = false;
+      document.body.append(script);
+    }
+  </script>
 </body>
 </html>

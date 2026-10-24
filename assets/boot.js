@@ -13,8 +13,8 @@
 
   // Phones have no keyboard for the prompt (index.html removes its input):
   // DOS lists the disk by itself, and its programs are links that run full
-  // screen with pad.js's controls. The same query is in index.html.
-  const touch = matchMedia('(hover: none) and (pointer: coarse)');
+  // screen with pad.js's controls. index.html decides what is a phone.
+  const touch = window.handheld;
   // Listed, the links are zoomed in on this many times, over this long.
   const ZOOM = 5, ZOOM_MS = 900;
   const TUTORIAL = {
@@ -763,7 +763,6 @@
     });
     if (!nearest) return;
     typing = false;
-    pad.fullscreen();
     zoomOut().then(() => type(nearest.exe)).catch(ignoreOff);
   });
 
