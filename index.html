@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>Mark Priem's Island</title>
+  <meta name="description" content="Mark Priem's projects, as a point-and-click adventure. Walk to a candle-lit house to visit a GitHub repo.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=block">
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+    }
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #game {
+      display: block;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      cursor: none;
+      touch-action: manipulation;
+    }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+    noscript {
+      color: #ccc;
+      font: 14px/1.6 monospace;
+      padding: 16px;
+    }
+    noscript a { color: #f6ee6a; }
+  </style>
+</head>
+<body>
+  <canvas id="game" aria-label="A moonlit pixel-art island. Each candle-lit house is one of Mark Priem's GitHub projects."></canvas>
+  <nav class="sr-only" aria-label="Projects">
+    <ul id="repo-list"></ul>
+  </nav>
+  <noscript>
+    This island needs JavaScript. Meanwhile, the projects are on
+    <a href="https://github.com/mpriem">github.com/mpriem</a>.
+  </noscript>
+  <script src="assets/kid.js"></script>
+  <script src="assets/game.js"></script>
+</body>
+</html>
