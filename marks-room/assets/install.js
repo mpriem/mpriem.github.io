@@ -410,7 +410,7 @@
           <div>
             <strong>Mark's Room is designed for a PC.</strong>
             <p>The room, the island and DOOM were made for a keyboard, a mouse and a big screen.</p>
-            <p>For the full experience, visit <b>${location.host}</b> on your computer.</p>
+            <p>For the full experience, visit <b>${location.host}/marks-room</b> on your computer.</p>
           </div>
         </div>
         <p>Want to play on this phone anyway? It doesn't run in the browser: Setup needs to install it as an app on your home screen first.</p>

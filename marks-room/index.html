@@ -1,0 +1,666 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <link rel="icon" href="data:,">
+  <!-- Phones play the room as an app on the home screen (install.js). -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Mark's Room">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <title>Mark's Room</title>
+  <meta name="description" content="Step into Mark Priem's 90s bedroom: boot the PC, play the island adventure or DOOM, and discover his interests and projects along the way.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=block">
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+    }
+    /* A fixed box clips the photo, which runs off the window; otherwise
+       mobile browsers widen the page to fit it and zoom out. Around the
+       photo, a 90s pattern, darkening towards the edges. */
+    body {
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at center, rgba(0, 0, 0, 0.15) 30%, rgba(0, 0, 0, 0.65)),
+        #1a1030 url(assets/memphis.svg) center / 240px;
+    }
+    /* The island runs on the old Philips monitor in PC.webp, whose glass is
+       cut out: the canvas sits behind the photo, its edges tucked under the
+       bezel. game.js sizes and places #pc, #game and #glass. */
+    /* Phones and tablets. The scripts read this rather than asking
+       matchMedia, which Safari's fingerprinting protection can answer
+       differently from the CSS. */
+    @media (hover: none) and (pointer: coarse) {
+      :root {
+        --handheld: 1;
+      }
+    }
+    /* Opened from the home screen as an app rather than in a browser tab. */
+    @media (display-mode: standalone), (display-mode: fullscreen) {
+      :root {
+        --installed: 1;
+      }
+    }
+    #window, #client {
+      position: absolute;
+      inset: 0;
+    }
+    #client {
+      overflow: hidden;
+    }
+    #window .title {
+      display: none;
+    }
+    /* Upright on a phone: a Windows 95 window on the wallpaper, as tall as
+       the photo in it (game.js sets #client's height). */
+    @media (hover: none) and (pointer: coarse) and (orientation: portrait) {
+      #window {
+        inset: 50% 8px auto;
+        transform: translateY(-50%);
+        padding: 3px;
+        background: #c0c0c0;
+        box-shadow:
+          inset -1px -1px #0a0a0a, inset 1px 1px #dfdfdf,
+          inset -2px -2px #808080, inset 2px 2px #fff,
+          0 8px 32px rgba(0, 0, 0, 0.6);
+      }
+      #window .title {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        height: 18px;
+        margin-bottom: 2px;
+        padding: 0 2px 0 3px;
+        background: linear-gradient(90deg, #000080, #1084d0);
+        color: #fff;
+        font: bold 12px/1 Tahoma, 'MS Sans Serif', Arial, sans-serif;
+        white-space: nowrap;
+      }
+      #window .title svg {
+        width: 16px;
+        height: 16px;
+      }
+      #window .title span {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      #window .title i {
+        position: relative;
+        width: 16px;
+        height: 14px;
+        background: #c0c0c0;
+        box-shadow:
+          inset -1px -1px #0a0a0a, inset 1px 1px #fff,
+          inset -2px -2px #808080, inset 2px 2px #dfdfdf;
+      }
+      #window .title .close {
+        margin-left: 2px;
+      }
+      #window .title i::before, #window .title i::after {
+        content: '';
+        position: absolute;
+        background: #000;
+      }
+      #window .title .min::before {
+        left: 4px;
+        top: 9px;
+        width: 6px;
+        height: 2px;
+      }
+      #window .title .max::before {
+        left: 3px;
+        top: 2px;
+        width: 9px;
+        height: 9px;
+        background: none;
+        border: 1px solid #000;
+        border-top-width: 2px;
+        box-sizing: border-box;
+      }
+      #window .title .close::before, #window .title .close::after {
+        left: 7px;
+        top: 3px;
+        width: 2px;
+        height: 8px;
+        transform: rotate(45deg);
+      }
+      #window .title .close::after {
+        transform: rotate(-45deg);
+      }
+      #client {
+        position: relative;
+        inset: auto;
+        border: 2px solid;
+        border-color: #808080 #fff #fff #808080;
+      }
+    }
+    #pc {
+      position: absolute;
+    }
+    #pc img, #game, #glass {
+      position: absolute;
+    }
+    #pc img {
+      display: block;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      user-select: none;
+    }
+    #glass {
+      pointer-events: none;
+      container-type: size;
+    }
+    /* scanlines and a curved-glass vignette, over whatever is on the screen */
+    #glass::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.14) 0 1px, transparent 1px 3px),
+        radial-gradient(ellipse at center, transparent 60%, rgba(0, 0, 0, 0.45) 100%);
+    }
+    /* The text mode screen of boot.js, until ADVENTURE.EXE takes over. Typing
+       goes into the invisible input on top, which also brings up the
+       keyboard on phones. */
+    #dos, #dos-input {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+    }
+    #dos {
+      background: #000;
+      filter: brightness(0);
+    }
+    #dos.on {
+      filter: brightness(1);
+      transition: filter 1.4s ease-out;
+    }
+    /* DOOM.EXE in graphics mode, inside the same black border as the text. */
+    #doom {
+      position: absolute;
+      left: 5%;
+      top: 6%;
+      width: 90%;
+      height: 88%;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+    #dos-input {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      font-size: 16px;
+      opacity: 0;
+      cursor: text;
+      pointer-events: auto;
+    }
+    #game {
+      display: block;
+      visibility: hidden; /* until ADVENTURE.EXE runs */
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      cursor: none;
+      touch-action: manipulation;
+    }
+    /* Hardware on the photo: the power button and the tower's LEDs. --x and
+       --y are the centre, --w and --h the size, all in PC.webp pixels. */
+    .hw {
+      position: absolute;
+      left: calc((var(--x) - var(--w) / 2) / 1671 * 100%);
+      top: calc((var(--y) - var(--h) / 2) / 941 * 100%);
+      width: calc(var(--w) / 1671 * 100%);
+      height: calc(var(--h) / 941 * 100%);
+      margin: 0;
+      padding: 0;
+      border: 0;
+      border-radius: 50%;
+    }
+    .power, .traced {
+      background: transparent;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .power:focus, .traced:focus {
+      outline: none;
+    }
+    .power:active {
+      background: rgba(40, 28, 16, 0.2);
+    }
+    /* A ring now and then, so the dark screen doesn't leave you guessing,
+       traced around the button like the glow on the desk toys. */
+    .power::after {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 244, 214, 0.7);
+      filter: drop-shadow(0 0 4px rgba(255, 232, 180, 0.8));
+      opacity: 0;
+      animation: beckon 2.4s ease-in-out 3s infinite;
+      pointer-events: none;
+    }
+    .power:hover::after, .power:focus-visible::after {
+      opacity: 1;
+      animation: none;
+    }
+    .power.on::after {
+      animation: none;
+    }
+    @keyframes beckon {
+      50% { opacity: 1; }
+    }
+    /* The monitor's own power button stands in, to switch on only, while the
+       tower's is out of view (game.js). */
+    .power.monitor {
+      display: none;
+    }
+    .tower-hidden > .power.monitor:not(.on) {
+      display: block;
+    }
+    /* Toys on the desk: the Walkman's play key and the Audi quattro. Their
+       glow is traced around the toy itself, in PC.webp pixels, and stays lit
+       while the toy is playing. */
+    .traced {
+      border-radius: 0;
+    }
+    .traced svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      opacity: 0;
+      filter: drop-shadow(0 0 4px rgba(255, 232, 180, 0.8));
+      animation: beckon 2.4s ease-in-out 3s infinite;
+      pointer-events: none;
+    }
+    .traced polygon {
+      fill: none;
+      stroke: rgba(255, 244, 214, 0.7);
+      stroke-width: 2px;
+      stroke-linejoin: round;
+      vector-effect: non-scaling-stroke;
+    }
+    .traced:hover svg, .traced:focus-visible svg, .traced[aria-pressed="true"] svg, .traced.on svg {
+      opacity: 1;
+      animation: none;
+    }
+    /* On a phone the Walkman's play key is a few pixels across: a finger
+       gets a bigger target around it, while the glow keeps to the key. */
+    @media (hover: none) and (pointer: coarse) {
+      .traced.play::before {
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 48px;
+        height: 48px;
+        transform: translate(-50%, -50%);
+      }
+    }
+    /* The quattro's headlights, flashed twice and twice again. */
+    .lamp {
+      pointer-events: none;
+      border-radius: 40%;
+      background: radial-gradient(closest-side, #fffef6, rgba(255, 248, 222, 0.9) 60%, transparent);
+      mix-blend-mode: screen;
+      opacity: 0;
+    }
+    .lamp::after {
+      content: '';
+      position: absolute;
+      inset: -180% -140%;
+      border-radius: 50%;
+      background: radial-gradient(closest-side, rgba(255, 246, 215, 0.5), transparent);
+    }
+    .lamp.flash {
+      animation: headlights 2s linear;
+    }
+    @keyframes headlights {
+      0%, 4% { opacity: 0; }
+      5%, 16% { opacity: 1; }
+      18%, 22% { opacity: 0; }
+      23%, 34% { opacity: 1; }
+      36%, 59% { opacity: 0; }
+      60%, 71% { opacity: 1; }
+      73%, 77% { opacity: 0; }
+      78%, 89% { opacity: 1; }
+      92%, 100% { opacity: 0; }
+    }
+    .led {
+      pointer-events: none;
+      background: radial-gradient(circle at 42% 38%, #6f6d62, #3a3933 55%, #1f1e1a);
+    }
+    .led.drive {
+      border-radius: 1px;
+      background: #1b1a17;
+    }
+    .led::after {
+      content: '';
+      position: absolute;
+      inset: -140%;
+      border-radius: 50%;
+      background: radial-gradient(closest-side, var(--glow), transparent);
+      opacity: 0;
+    }
+    .led.on::after {
+      opacity: 1;
+    }
+    .led.red.on {
+      --glow: rgba(255, 60, 30, 0.55);
+      background: radial-gradient(circle at 42% 38%, #ffe2d4, #ff4426 35%, #bb1400 70%, #640900);
+    }
+    .led.green.on {
+      --glow: rgba(80, 255, 90, 0.5);
+      background: radial-gradient(circle at 42% 38%, #ecffe0, #52ff5e 35%, #12a822 70%, #075412);
+    }
+    /* Phones and tablets held upright: the glass asks to be turned sideways.
+       Sideways, game.js fills the screen with the photo. */
+    #turn {
+      display: none;
+      position: absolute;
+      inset: 0;
+      pointer-events: auto;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4cqh;
+      background: #000;
+      color: #aaa;
+      text-shadow: 0 0 0.4em rgba(170, 170, 170, 0.5);
+      font: 9cqh/1 VT323, monospace;
+      text-align: center;
+    }
+    #turn p {
+      margin: 0;
+    }
+    #turn .note {
+      font-size: 6cqh;
+      color: #777;
+    }
+    #turn svg {
+      height: 42cqh;
+      overflow: visible;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      filter: drop-shadow(0 0 3px rgba(170, 170, 170, 0.5));
+    }
+    #turn .phone {
+      transform-origin: 50px 50px;
+      animation: turn 3s ease-in-out infinite;
+    }
+    #turn .phone circle {
+      fill: currentColor;
+      stroke: none;
+    }
+    @keyframes turn {
+      0%, 15% { transform: rotate(0); }
+      45%, 80% { transform: rotate(90deg); }
+      100% { transform: rotate(0); }
+    }
+    @media (hover: none) and (pointer: coarse) and (orientation: portrait) {
+      #turn {
+        display: flex;
+      }
+      #pc .power {
+        display: none;
+      }
+      /* A game running full screen gives way to the message, and runs on
+         behind it. */
+      #play {
+        display: none;
+      }
+    }
+    /* Turning a phone around, or a game going full screen and back: the new
+       picture fades in from black (pad.js). */
+    #fade {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      opacity: 0;
+      pointer-events: none;
+    }
+    #fade.on {
+      animation: fade 0.5s ease-out;
+    }
+    @keyframes fade {
+      from { opacity: 1; }
+      to { opacity: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #turn .phone, #fade.on {
+        animation: none;
+      }
+    }
+    /* Phones have no keyboard for the prompt, so its input goes: DOS types
+       by itself and the programs it lists are tapped on the screen instead
+       (boot.js). */
+    @media (hover: none) and (pointer: coarse) {
+      #dos-input {
+        display: none;
+      }
+      #dos {
+        pointer-events: auto;
+      }
+    }
+    /* A game run from a phone's prompt fills the screen, with the stick and
+       button of pad.js on top. pad.js moves the game's canvas in here. */
+    #play {
+      position: fixed;
+      inset: 0;
+      /* The pattern again, darker, so the controls stand out on it. */
+      background:
+        linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+        #1a1030 url(assets/memphis.svg) center / 240px;
+      container-type: size;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+    #play > canvas {
+      position: absolute !important;
+      inset: 0 !important;
+      margin: auto;
+      width: min(100cqw, 100cqh * var(--aspect)) !important;
+      height: min(100cqh, 100cqw / var(--aspect)) !important;
+    }
+    #stick, #button {
+      position: absolute;
+      bottom: max(24px, env(safe-area-inset-bottom));
+      margin: 0;
+      padding: 0;
+      border: 2px solid rgba(255, 244, 214, 0.35);
+      border-radius: 50%;
+      background: rgba(255, 244, 214, 0.08);
+      -webkit-tap-highlight-color: transparent;
+    }
+    #stick {
+      left: max(40px, env(safe-area-inset-left));
+      width: 120px;
+      height: 120px;
+    }
+    #stick span {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 56px;
+      height: 56px;
+      margin: -28px;
+      border-radius: 50%;
+      background: rgba(255, 244, 214, 0.35);
+    }
+    #button {
+      right: max(40px, env(safe-area-inset-right));
+      width: 84px;
+      height: 84px;
+    }
+    #button:focus {
+      outline: none;
+    }
+    #button.down {
+      background: rgba(255, 244, 214, 0.35);
+    }
+    #tutorial {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6em;
+      padding: 0 15%;
+      background: rgba(0, 0, 0, 0.8);
+      color: #aaa;
+      text-shadow: 0 0 0.4em rgba(170, 170, 170, 0.5);
+      font: 22px/1.1 VT323, monospace;
+      text-align: center;
+    }
+    #tutorial[hidden] {
+      display: none;
+    }
+    #tutorial p {
+      margin: 0;
+    }
+    #tutorial p:last-child {
+      margin-top: 0.6em;
+      color: #fff;
+    }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+    noscript {
+      color: #ccc;
+      font: 14px/1.6 monospace;
+      padding: 16px;
+    }
+    noscript a { color: #f6ee6a; }
+  </style>
+  <script>
+    // Whether the CSS took this for a phone or tablet (--handheld above), and
+    // whether it runs as an app from the home screen (--installed above, or
+    // Safari's own flag).
+    const cssFlag = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim() === '1';
+    window.handheld = {
+      get matches() {
+        return cssFlag('--handheld');
+      }
+    };
+    window.installed = cssFlag('--installed') || navigator.standalone === true;
+    // Only phones and tablets are offered the app; a PC plays in the browser.
+    if (handheld.matches) {
+      const manifest = document.createElement('link');
+      manifest.rel = 'manifest';
+      manifest.href = 'manifest.webmanifest';
+      document.head.append(manifest);
+    }
+  </script>
+</head>
+<body>
+  <!-- Upright on a phone, the scene sits in a Windows 95 window; otherwise
+       the window is the whole screen with no frame. game.js fits the scene
+       to #client. -->
+  <div id="window">
+    <div class="title" aria-hidden="true">
+      <svg viewBox="0 0 16 16" shape-rendering="crispEdges">
+        <path fill="#c0c0c0" d="M2 2h12v9H2z"/>
+        <path fill="#000080" d="M3 3h10v7H3z"/>
+        <path fill="#55ffff" d="M4 4h3v1H4zm0 2h5v1H4z"/>
+        <path fill="#808080" d="M6 11h4v2H6zM4 13h8v1H4z"/>
+      </svg>
+      <span>Mark's Room</span>
+      <i class="min"></i><i class="max"></i><i class="close"></i>
+    </div>
+    <div id="client">
+      <div id="pc">
+        <canvas id="game" aria-label="A moonlit pixel-art island. Each candle-lit house is one of Mark Priem's GitHub projects."></canvas>
+        <div id="glass">
+          <canvas id="dos" aria-hidden="true"></canvas>
+          <canvas id="doom" aria-label="DOOM" hidden></canvas>
+          <input id="dos-input" aria-label="MS-DOS prompt. Type HELP for a list of commands."
+                 autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" disabled>
+          <div id="turn">
+            <svg viewBox="0 0 100 100" aria-hidden="true">
+              <g class="phone">
+                <rect x="36" y="24" width="28" height="52" rx="5"/>
+                <line x1="46" y1="29" x2="54" y2="29"/>
+                <circle cx="50" cy="70.5" r="2.5"/>
+              </g>
+              <path d="M72.9 17.2A40 40 0 0 1 89.4 43.1M84.5 37.9L89.4 43.1 92.3 36.5"/>
+            </svg>
+            <p>TURN YOUR SCREEN<br>TO GET STARTED</p>
+            <p class="note">FOR THE BEST EXPERIENCE, VISIT ON A PC</p>
+          </div>
+        </div>
+        <img src="assets/PC.webp" alt="" width="1671" height="941">
+        <button class="hw power" style="--x: 1568; --y: 577; --w: 86; --h: 86" aria-label="Switch on the computer"></button>
+        <button class="hw power monitor" style="--x: 1138.5; --y: 700.5; --w: 48; --h: 48" aria-label="Switch on the computer"></button>
+        <button class="hw traced audi" style="--x: 1514; --y: 143.5; --w: 292; --h: 101" aria-label="Rev the Audi quattro">
+          <svg viewBox="1368 93 292 101" preserveAspectRatio="none" aria-hidden="true">
+            <polygon points="1370,190 1370,169 1376,151 1385,145.5 1442,131 1450,132.5 1476,107.5 1496,100 1497.5,96 1517.5,95.5 1520,98.5 1577.5,101 1607.5,112.5 1610,110 1652.5,103.5 1656.5,125 1651,140 1657.5,167.5 1654,176 1622.5,179 1520,182.5 1507.5,185 1435,187.5 1375,192"/>
+          </svg>
+        </button>
+        <span class="hw lamp" style="--x: 1384; --y: 159; --w: 13; --h: 11"></span>
+        <span class="hw lamp" style="--x: 1443; --y: 151; --w: 20; --h: 12"></span>
+        <button class="hw traced play" style="--x: 80.5; --y: 613; --w: 14; --h: 20" aria-label="Play 90s rock on the Walkman" aria-pressed="false">
+          <svg viewBox="73.5 603 14 20" preserveAspectRatio="none" aria-hidden="true">
+            <polygon points="74,604 86.5,605 86.5,621 74.5,622"/>
+          </svg>
+        </button>
+        <span class="hw led red" id="led-power" style="--x: 1599.5; --y: 694.5; --w: 11; --h: 11"></span>
+        <span class="hw led green" id="led-hdd" style="--x: 1599.5; --y: 717.5; --w: 11; --h: 11"></span>
+        <span class="hw led green" id="led-floppy" style="--x: 1599.5; --y: 739; --w: 11; --h: 11"></span>
+        <span class="hw led green drive" id="led-drive" style="--x: 1409.5; --y: 439; --w: 10; --h: 6"></span>
+      </div>
+    </div>
+  </div>
+  <div id="play" hidden>
+    <div id="stick"><span></span></div>
+    <button id="button" aria-label="Select or fire"></button>
+    <div id="tutorial"></div>
+  </div>
+  <div id="fade"></div>
+  <nav class="sr-only" aria-label="Projects">
+    <ul id="repo-list"></ul>
+  </nav>
+  <noscript>
+    This island needs JavaScript. Meanwhile, the projects are on
+    <a href="https://github.com/mpriem">github.com/mpriem</a>.
+  </noscript>
+  <script>
+    // A phone in a browser tab gets Setup, which shows how to install the
+    // room as an app, instead of the room itself.
+    const scripts = handheld.matches && !installed
+      ? ['install']
+      : ['kid', 'game', 'doom', 'pad', 'boot', 'desk'];
+    for (const name of scripts) {
+      const script = document.createElement('script');
+      script.src = `assets/${name}.js`;
+      script.async = false;
+      document.body.append(script);
+    }
+  </script>
+</body>
+</html>
