@@ -13,8 +13,9 @@
   const GLASS = { x: 473, y: 137, w: 716, h: 483 };
   const MONITOR = { w: 890, h: 700 };
   // Right edge of the tower's power button (boot.js), kept in view when the
-  // monitor allows.
+  // monitor allows, and the button itself: centre and radius.
   const POWER_RIGHT = 1625;
+  const POWER = { x: 1568, y: 577, r: 43 };
   // Photo pixels per scene pixel: the canvas covers the glass with a little
   // to spare under the bezel. The glass is squarer than the canvas, so SIDE
   // columns on the left and right (and TOP rows top and bottom) end up behind
@@ -766,10 +767,7 @@
     };
   }
 
-  // The canvas reaches under the bezel; there it is just part of the photo.
-  canvas.addEventListener('pointermove', e => {
-    const p = toScene(e);
-    canvas.style.cursor = inView(p) ? '' : 'default';
+  function pointAt(p, visible) {
     if (!inView(p)) {
       mouse.visible = false;
       hover = null;
@@ -778,9 +776,16 @@
     }
     mouse.x = p.x;
     mouse.y = p.y;
-    mouse.visible = e.pointerType === 'mouse';
+    mouse.visible = visible;
     hover = p.y < H ? houseAt(p.x, p.y) : null;
     verbHover = p.y >= H ? verbAt(p.x, p.y) : null;
+  }
+
+  // The canvas reaches under the bezel; there it is just part of the photo.
+  canvas.addEventListener('pointermove', e => {
+    const p = toScene(e);
+    canvas.style.cursor = inView(p) ? '' : 'default';
+    pointAt(p, e.pointerType === 'mouse');
   });
   canvas.addEventListener('pointerleave', () => {
     mouse.visible = false;
@@ -788,8 +793,33 @@
     verbHover = null;
   });
 
-  canvas.addEventListener('click', e => {
-    const p = toScene(e);
+  canvas.addEventListener('click', e => clickAt(toScene(e)));
+
+  // On phones pad.js steers the crosshair with its stick, at up to SPEED
+  // scene pixels a second, and its button clicks where it points.
+  const SPEED = 200;
+  const stick = { x: 0, y: 0, aim: null };
+
+  window.adventurePad = {
+    stick(x, y) {
+      stick.x = x;
+      stick.y = y;
+    },
+    button(down) {
+      if (down && started && mouse.visible) clickAt(mouse);
+    }
+  };
+
+  function steer(dt) {
+    if (!stick.x && !stick.y) return;
+    stick.aim ??= { x: W / 2, y: H / 2 };
+    const v = SPEED * Math.hypot(stick.x, stick.y) * dt;
+    stick.aim.x = clamp(stick.aim.x + stick.x * v, SIDE, W - SIDE - 1);
+    stick.aim.y = clamp(stick.aim.y + stick.y * v, TOP, H + BAR - TOP - 1);
+    pointAt({ x: Math.floor(stick.aim.x), y: Math.floor(stick.aim.y) }, true);
+  }
+
+  function clickAt(p) {
     if (!background || !walk || leaving || !inView(p)) return;
     if (p.y >= H) {
       const v = verbAt(p.x, p.y);
@@ -801,7 +831,7 @@
     if (house) act(verb, house);
     else walkTo([p.x, p.y]);
     verb = 'walk';
-  });
+  }
 
   addEventListener('keydown', e => {
     if (!started) return;
@@ -818,23 +848,47 @@
   // was left, mid fade; open the curtains again.
   addEventListener('pageshow', e => { if (e.persisted) leaving = null; });
 
+  // Phones and tablets only; a PC keeps the layout below. Held sideways, the
+  // photo fills the screen, cropping the keyboard at its bottom (from
+  // KEYBOARD down) first. Held upright, the monitor's bezel spans the window
+  // edge to edge. In photo pixels; the same queries are in index.html.
+  const KEYBOARD = 840;
+  const BEZEL = { x: 389, w: 882 };
+  const handheld = matchMedia('(hover: none) and (pointer: coarse)');
+  const upright = matchMedia('(orientation: portrait)');
+
+  // The scene fits #client, the inside of the window it sits in (index.html):
+  // the whole screen, or upright on a phone a Windows 95 window as tall as
+  // the photo at its width.
+  const client = document.getElementById('client');
+
   function fit() {
-    const vw = innerWidth, vh = innerHeight;
-    const s = Math.min(Math.max(vw / PC.w, vh / PC.h), vw / MONITOR.w, vh / MONITOR.h);
+    const phone = handheld.matches, tall = phone && upright.matches;
+    client.style.height = tall ? `${PC.h * client.clientWidth / BEZEL.w}px` : '';
+    const vw = client.clientWidth, vh = client.clientHeight;
+    const s = tall ? vw / BEZEL.w
+      : phone ? Math.max(vw / PC.w, vh / PC.h)
+      : Math.min(Math.max(vw / PC.w, vh / PC.h), vw / MONITOR.w, vh / MONITOR.h);
     const pw = PC.w * s, ph = PC.h * s;
     // Centre on the screen, but never pull the photo's edge into the window.
     const place = (view, size, centre) => size <= view
       ? (view - size) / 2
       : Math.min(0, Math.max(view - size, view / 2 - centre));
-    let left = place(vw, pw, (GLASS.x + GLASS.w / 2) * s);
-    if (left + POWER_RIGHT * s > vw) {
+    let left = tall ? -BEZEL.x * s : place(vw, pw, (GLASS.x + GLASS.w / 2) * s);
+    if (!tall && left + POWER_RIGHT * s > vw) {
       left = Math.max(vw - POWER_RIGHT * s, vw - pw, -(GLASS.x + GLASS.w / 2 - MONITOR.w / 2) * s);
     }
     const stage = document.getElementById('pc');
     stage.style.width = `${pw}px`;
     stage.style.height = `${ph}px`;
     stage.style.left = `${left}px`;
-    stage.style.top = `${place(vh, ph, (GLASS.y + GLASS.h / 2) * s)}px`;
+    const middle = phone && !tall ? KEYBOARD / 2 : GLASS.y + GLASS.h / 2;
+    const top = place(vh, ph, middle * s);
+    stage.style.top = `${top}px`;
+    // With the tower's power button cut off, the monitor's own stands in
+    // (index.html).
+    const cut = (c, view, offset) => offset + (c - POWER.r) * s < 0 || offset + (c + POWER.r) * s > view;
+    stage.classList.toggle('tower-hidden', cut(POWER.x, vw, left) || cut(POWER.y, vh, top));
 
     // The canvas sits behind the photo, centred on the glass and covering it.
     const cw = W * FILL * s, ch = (H + BAR) * FILL * s;
@@ -936,6 +990,7 @@
 
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, W, H + BAR);
+    steer(dt);
     if (background && walk) {
       updateKid(dt);
       ctx.drawImage(background, 0, 0);
@@ -983,8 +1038,7 @@
       kid.dir = 'front';
       say([
         'My name is Mark Priem, and I want to be a programmer!',
-        'Every candle-lit window on this island is one of my projects.',
-        'Try Look at, Use or Talk to on a house.'
+        'Every candle-lit window on this island has a story to tell about me.'
       ]);
     };
     last = performance.now();
@@ -1006,5 +1060,7 @@
     timers.length = 0;
     hover = verbHover = leaving = null;
     verb = 'walk';
+    Object.assign(stick, { x: 0, y: 0, aim: null });
+    mouse.visible = false;
   };
 })();

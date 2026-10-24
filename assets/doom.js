@@ -113,6 +113,13 @@
       doom.reportKeyUp(key);
     }
 
+    // The on-screen controls of pad.js hold keys down as a keyboard would.
+    function hold(key, down) {
+      const e = { key, code: `pad ${key}`, preventDefault() {} };
+      if (down) keydown(e);
+      else keyup(e);
+    }
+
     function releaseAll() {
       for (const key of held.values()) doom.reportKeyUp(key);
       held.clear();
@@ -153,7 +160,19 @@
         }, 1000 / 35);
       },
 
-      stop
+      stop,
+
+      // pad.js on phones: the stick walks and turns, the button fires, opens
+      // doors and picks menu items.
+      stick(x, y) {
+        hold('ArrowUp', y < -0.4);
+        hold('ArrowDown', y > 0.4);
+        hold('ArrowLeft', x < -0.4);
+        hold('ArrowRight', x > 0.4);
+      },
+      button(down) {
+        for (const key of ['Control', ' ', 'Enter']) hold(key, down);
+      }
     };
   };
 })();
