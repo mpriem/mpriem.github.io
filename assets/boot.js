@@ -1,7 +1,8 @@
 // The PC in PC.webp starts switched off. Its power button boots it the way a
 // late-90s PC did: video BIOS, Award POST with memory test, drive detection
 // and the speaker beep, then MS-DOS from the floppy in drive A:. At the A:\>
-// prompt, ADVENTURE.EXE starts the island in game.js.
+// prompt, ADVENTURE.EXE starts the island in game.js. Pressing the button
+// again switches it off, whatever it was doing.
 (() => {
   'use strict';
 
@@ -19,7 +20,15 @@
   const powerButtons = [...document.querySelectorAll('.power')];
   const ctx = crt.getContext('2d');
 
-  const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+  // Switching off abandons whatever the PC was doing: every wait begun
+  // before then rejects with OFF instead of resolving.
+  const OFF = Symbol('off');
+  let generation = 0;
+  const wait = ms => {
+    const g = generation;
+    return new Promise((resolve, reject) => setTimeout(() => (g === generation ? resolve() : reject(OFF)), ms));
+  };
+  const ignoreOff = e => { if (e !== OFF) throw e; };
   const rand = (lo, hi) => lo + Math.random() * (hi - lo);
 
   // ---------------------------------------------------------------- sound
@@ -27,7 +36,7 @@
   // Everything is synthesised: switch clicks, fan, disk heads, floppy
   // stepper, the CRT's degauss coil and the PC speaker.
   const sound = (() => {
-    let ac = null, out = null, ambient = null, noise = null;
+    let ac = null, out = null, ambient = null, noise = null, spinners = [];
 
     function start() {
       const AC = window.AudioContext || window.webkitAudioContext;
@@ -115,6 +124,25 @@
         whine.o.frequency.exponentialRampToValueAtTime(840, whine.t + 4);
         whine.g.gain.exponentialRampToValueAtTime(0.006, whine.t + 2);
         whine.g.gain.exponentialRampToValueAtTime(0.0015, whine.t + 6);
+        spinners = [spin.o, whine.o];
+      },
+
+      // Switched off: the click of the switch, then the fan and the disk
+      // spin down into silence.
+      off() {
+        if (!ac) return;
+        const old = ac, t = ac.currentTime;
+        burst(2200, 1, 0.7, 0.03);
+        burst(250, 1, 0.6, 0.08);
+        for (const o of spinners) {
+          const f = o.frequency.value;
+          o.frequency.cancelScheduledValues(t);
+          o.frequency.setValueAtTime(f, t);
+          o.frequency.setTargetAtTime(f / 5, t, 0.6);
+        }
+        out.gain.setTargetAtTime(0.0001, t + 0.1, 0.5);
+        ac = null;
+        setTimeout(() => old.close(), 3000);
       },
 
       // The tube coming on: degauss relay, a decaying 50 Hz "bwong", and the
@@ -159,6 +187,7 @@
       // The floppy spindle motor, wobbling at 300 rpm. Returns its off switch.
       motor() {
         if (!ac) return () => {};
+        const c = ac;
         const g = ac.createGain();
         g.gain.value = 0.05;
         const bp = filter('bandpass', 180, 1.5);
@@ -166,7 +195,7 @@
         bp.connect(g).connect(out);
         const wobble = tone('sine', 5, 0.025, 0, 0, g.gain);
         return () => {
-          const t = ac.currentTime;
+          const t = c.currentTime;
           g.gain.cancelScheduledValues(t);
           g.gain.setTargetAtTime(0, t, 0.08);
           src.stop(t + 0.5);
@@ -256,7 +285,8 @@
   const screen = {
     chars: [], colors: [],
     row: 0, col: 0,
-    on: false, cursor: false, logo: false, dirty: true
+    on: false, cursor: false, logo: false, dirty: true,
+    collapse: null // when the picture started collapsing, after switching off
   };
 
   const blankRow = () => Array(COLS).fill(' ');
@@ -355,6 +385,7 @@
     // Even showing black, a tube that is on glows a little.
     ctx.fillStyle = screen.on ? '#070908' : '#000';
     ctx.fillRect(0, 0, w, h);
+    if (screen.collapse !== null) drawCollapse(w, h);
     if (!screen.on) return;
 
     const ox = w * BORDER.x, oy = h * BORDER.y;
@@ -397,6 +428,27 @@
     }
   }
 
+  // Switched off, the picture squeezes into a bright line, the line into a
+  // dot, and the dot fades away.
+  function drawCollapse(w, h) {
+    const t = (performance.now() - screen.collapse) / 1000;
+    if (t > 1.4) {
+      screen.collapse = null;
+      crt.classList.remove('on');
+      return;
+    }
+    const squeeze = Math.min(1, t / 0.08), shrink = Math.min(1, Math.max(0, (t - 0.08) / 0.22));
+    const lineW = Math.max(h * 0.012, w * (1 - shrink)), lineH = Math.max(h * 0.008, h * 0.5 * (1 - squeeze));
+    ctx.globalAlpha = t < 0.3 ? 1 : 1 - (t - 0.3) / 1.1;
+    ctx.fillStyle = '#e8f4ff';
+    ctx.shadowColor = '#cfe6ff';
+    ctx.shadowBlur = h * 0.04;
+    ctx.fillRect((w - lineW) / 2, (h - lineH) / 2, lineW, lineH);
+    ctx.globalAlpha = 1;
+    ctx.shadowBlur = 0;
+    screen.dirty = true;
+  }
+
   function resize() {
     const dpr = window.devicePixelRatio || 1;
     crt.width = Math.max(1, Math.round(crt.clientWidth * dpr));
@@ -407,7 +459,6 @@
   let blink = false;
 
   function frame(now) {
-    if (!crt.isConnected) return;
     const b = Math.floor(now / 240) % 2 === 0;
     if (b !== blink) {
       blink = b;
@@ -423,15 +474,26 @@
 
   // ---------------------------------------------------------------- boot
 
-  let skipMemoryTest = false;
+  let on = false, skipMemoryTest = false;
+
+  function setPower(state) {
+    on = state;
+    powerButtons.forEach(b => {
+      b.classList.toggle('on', on);
+      b.setAttribute('aria-label', on ? 'Switch off the computer' : 'Switch on the computer');
+    });
+    light(LED.power, on);
+  }
 
   async function powerOn() {
-    powerButtons.forEach(b => { b.disabled = true; });
+    setPower(true);
+    skipMemoryTest = false;
+    screen.collapse = null;
+    crt.classList.remove('on');
     sound.start();
     sound.power();
     sound.fan();
-    light(LED.power, true);
-    hdd(600);
+    hdd(600).catch(ignoreOff);
     await wait(700);
 
     // The monitor wakes up.
@@ -541,6 +603,27 @@
     prompt();
   }
 
+  function powerOff() {
+    generation++;
+    setPower(false);
+    sound.off();
+    Object.values(LED).forEach(led => light(led, false));
+    typing = false;
+    input.value = '';
+    input.disabled = true;
+    window.stopAdventure();
+    crt.hidden = input.hidden = false;
+    // Only a tube that was showing something collapses.
+    if (screen.on || crt.classList.contains('on')) screen.collapse = performance.now();
+    screen.on = screen.cursor = false;
+    cls();
+  }
+
+  function togglePower() {
+    if (on) powerOff();
+    else powerOn().catch(ignoreOff);
+  }
+
   addEventListener('keydown', e => {
     if (e.key === 'Escape') skipMemoryTest = true;
   });
@@ -591,7 +674,7 @@
     if (e.key.length === 1 || e.key === 'Backspace' || e.key === 'Enter') sound.key();
     if (e.key === 'Enter') {
       e.preventDefault();
-      run(input.value);
+      run(input.value).catch(ignoreOff);
     } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
       e.preventDefault();
     }
@@ -608,7 +691,7 @@
       return;
     }
     if (isAdventure(cmd)) {
-      launch();
+      await launch();
       return;
     }
     if (cmd === 'HELP') {
@@ -665,8 +748,7 @@
   }
 
   function startGame() {
-    crt.remove();
-    input.remove();
+    crt.hidden = input.hidden = true;
     window.startAdventure();
   }
 
@@ -676,13 +758,11 @@
   new ResizeObserver(resize).observe(crt);
   document.fonts.load('20px VT323').then(() => { screen.dirty = true; }, () => {});
 
+  powerButtons.forEach(b => b.addEventListener('click', togglePower));
+  requestAnimationFrame(frame);
   if (DEBUG) {
     // Straight to the island while working on it.
-    powerButtons.forEach(b => { b.disabled = true; });
-    light(LED.power, true);
+    setPower(true);
     startGame();
-  } else {
-    powerButtons.forEach(b => b.addEventListener('click', powerOn, { once: true }));
-    requestAnimationFrame(frame);
   }
 })();

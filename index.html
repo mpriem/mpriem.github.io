@@ -106,10 +106,6 @@
     .power:active {
       background: rgba(40, 28, 16, 0.2);
     }
-    .power:disabled {
-      cursor: default;
-      background: transparent;
-    }
     /* A soft ring now and then, so the dark screen doesn't leave you guessing. */
     .power::after {
       content: '';
@@ -125,8 +121,8 @@
       opacity: 1;
       animation: none;
     }
-    .power:disabled::after {
-      display: none;
+    .power.on::after {
+      animation: none;
     }
     @keyframes beckon {
       50% { opacity: 1; }

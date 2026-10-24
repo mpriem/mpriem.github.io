@@ -924,7 +924,7 @@
     ctx.stroke();
   }
 
-  let clock = 0, last = performance.now();
+  let clock = 0, last = performance.now(), raf = 0;
 
   function frame(now) {
     const dt = Math.min(0.05, (now - last) / 1000);
@@ -963,7 +963,7 @@
         location.href = leaving.url;
       }
     }
-    requestAnimationFrame(frame);
+    raf = requestAnimationFrame(frame);
   }
 
   document.fonts.load(FONT).then(() => {
@@ -988,6 +988,23 @@
       ]);
     };
     last = performance.now();
-    requestAnimationFrame(frame);
+    raf = requestAnimationFrame(frame);
+  };
+
+  // Switching the PC off ends the game; the next ADVENTURE.EXE starts it
+  // from the beginning.
+  window.stopAdventure = () => {
+    if (!started) return;
+    started = false;
+    cancelAnimationFrame(raf);
+    canvas.style.visibility = 'hidden';
+    Object.assign(kid, {
+      x: 318, y: 338, dir: 'back',
+      path: [], walkT: 0, onArrive: null,
+      speech: [], speechT: 0, idleT: 0
+    });
+    timers.length = 0;
+    hover = verbHover = leaving = null;
+    verb = 'walk';
   };
 })();
