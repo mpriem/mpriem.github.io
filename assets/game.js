@@ -851,10 +851,10 @@
   // Phones and tablets only; a PC keeps the layout below. Held sideways, the
   // photo fills the screen, cropping the keyboard at its bottom (from
   // KEYBOARD down) first. Held upright, the monitor's bezel spans the window
-  // edge to edge. In photo pixels; the same queries are in index.html.
+  // edge to edge. In photo pixels; index.html lays out the same cases.
   const KEYBOARD = 840;
   const BEZEL = { x: 389, w: 882 };
-  const handheld = matchMedia('(hover: none) and (pointer: coarse)');
+  const handheld = window.handheld;
   const upright = matchMedia('(orientation: portrait)');
 
   // The scene fits #client, the inside of the window it sits in (index.html):

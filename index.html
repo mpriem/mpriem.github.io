@@ -29,6 +29,14 @@
     /* The island runs on the old Philips monitor in PC.webp, whose glass is
        cut out: the canvas sits behind the photo, its edges tucked under the
        bezel. game.js sizes and places #pc, #game and #glass. */
+    /* Phones and tablets. The scripts read this rather than asking
+       matchMedia, which Safari's fingerprinting protection can answer
+       differently from the CSS. */
+    @media (hover: none) and (pointer: coarse) {
+      :root {
+        --handheld: 1;
+      }
+    }
     #window, #client {
       position: absolute;
       inset: 0;
@@ -419,7 +427,7 @@
     }
     /* Phones have no keyboard for the prompt, so its input goes: DOS types
        by itself and the programs it lists are tapped on the screen instead
-       (boot.js). The same query is in boot.js. */
+       (boot.js). */
     @media (hover: none) and (pointer: coarse) {
       #dos-input {
         display: none;
@@ -598,6 +606,14 @@
     This island needs JavaScript. Meanwhile, the projects are on
     <a href="https://github.com/mpriem">github.com/mpriem</a>.
   </noscript>
+  <script>
+    // Whether the CSS took this for a phone or tablet (--handheld above).
+    window.handheld = {
+      get matches() {
+        return getComputedStyle(document.documentElement).getPropertyValue('--handheld').trim() === '1';
+      }
+    };
+  </script>
   <script src="assets/kid.js"></script>
   <script src="assets/game.js"></script>
   <script src="assets/doom.js"></script>

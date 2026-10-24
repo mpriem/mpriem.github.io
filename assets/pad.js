@@ -109,8 +109,9 @@
   }
 
   fade.addEventListener('animationend', () => fade.classList.remove('on'));
-  matchMedia('(hover: none) and (pointer: coarse) and (orientation: portrait)')
-    .addEventListener('change', fadeIn);
+  matchMedia('(orientation: portrait)').addEventListener('change', () => {
+    if (handheld.matches) fadeIn();
+  });
 
   // ---------------------------------------------------------------- tutorial
 
