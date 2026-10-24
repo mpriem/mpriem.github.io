@@ -299,6 +299,19 @@
       opacity: 1;
       animation: none;
     }
+    /* On a phone the Walkman's play key is a few pixels across: a finger
+       gets a bigger target around it, while the glow keeps to the key. */
+    @media (hover: none) and (pointer: coarse) {
+      .traced.play::before {
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 48px;
+        height: 48px;
+        transform: translate(-50%, -50%);
+      }
+    }
     /* The quattro's headlights, flashed twice and twice again. */
     .lamp {
       pointer-events: none;
