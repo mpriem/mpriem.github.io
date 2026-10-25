@@ -58,88 +58,93 @@
     #window .title {
       display: none;
     }
-    /* Upright on a phone: a Windows 95 window on the wallpaper, as tall as
-       the photo in it (game.js sets #client's height). */
+    /* A Windows 95 window on the wallpaper (game.js sets .framed). On a PC
+       it holds the whole photo, as large as the screen allows, and game.js
+       sizes and centres it. Upright on a phone it spans the screen, as tall
+       as the photo in it (game.js sets #client's height). */
+    #window.framed {
+      inset: auto;
+      padding: 3px;
+      background: #c0c0c0;
+      box-shadow:
+        inset -1px -1px #0a0a0a, inset 1px 1px #dfdfdf,
+        inset -2px -2px #808080, inset 2px 2px #fff,
+        0 8px 32px rgba(0, 0, 0, 0.6);
+    }
+    #window.framed .title {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      height: 18px;
+      margin-bottom: 2px;
+      padding: 0 2px 0 3px;
+      background: linear-gradient(90deg, #000080, #1084d0);
+      color: #fff;
+      font: bold 12px/1 Tahoma, 'MS Sans Serif', Arial, sans-serif;
+      white-space: nowrap;
+    }
+    #window.framed .title svg {
+      width: 16px;
+      height: 16px;
+    }
+    #window.framed .title span {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    #window.framed .title i {
+      position: relative;
+      width: 16px;
+      height: 14px;
+      background: #c0c0c0;
+      box-shadow:
+        inset -1px -1px #0a0a0a, inset 1px 1px #fff,
+        inset -2px -2px #808080, inset 2px 2px #dfdfdf;
+    }
+    #window.framed .title .close {
+      margin-left: 2px;
+    }
+    #window.framed .title i::before, #window.framed .title i::after {
+      content: '';
+      position: absolute;
+      background: #000;
+    }
+    #window.framed .title .min::before {
+      left: 4px;
+      top: 9px;
+      width: 6px;
+      height: 2px;
+    }
+    #window.framed .title .max::before {
+      left: 3px;
+      top: 2px;
+      width: 9px;
+      height: 9px;
+      background: none;
+      border: 1px solid #000;
+      border-top-width: 2px;
+      box-sizing: border-box;
+    }
+    #window.framed .title .close::before, #window.framed .title .close::after {
+      left: 7px;
+      top: 3px;
+      width: 2px;
+      height: 8px;
+      transform: rotate(45deg);
+    }
+    #window.framed .title .close::after {
+      transform: rotate(-45deg);
+    }
+    #window.framed #client {
+      position: relative;
+      inset: auto;
+      border: 2px solid;
+      border-color: #808080 #fff #fff #808080;
+    }
     @media (hover: none) and (pointer: coarse) and (orientation: portrait) {
-      #window {
+      #window.framed {
         inset: 50% 8px auto;
         transform: translateY(-50%);
-        padding: 3px;
-        background: #c0c0c0;
-        box-shadow:
-          inset -1px -1px #0a0a0a, inset 1px 1px #dfdfdf,
-          inset -2px -2px #808080, inset 2px 2px #fff,
-          0 8px 32px rgba(0, 0, 0, 0.6);
-      }
-      #window .title {
-        display: flex;
-        align-items: center;
-        gap: 3px;
-        height: 18px;
-        margin-bottom: 2px;
-        padding: 0 2px 0 3px;
-        background: linear-gradient(90deg, #000080, #1084d0);
-        color: #fff;
-        font: bold 12px/1 Tahoma, 'MS Sans Serif', Arial, sans-serif;
-        white-space: nowrap;
-      }
-      #window .title svg {
-        width: 16px;
-        height: 16px;
-      }
-      #window .title span {
-        flex: 1;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      #window .title i {
-        position: relative;
-        width: 16px;
-        height: 14px;
-        background: #c0c0c0;
-        box-shadow:
-          inset -1px -1px #0a0a0a, inset 1px 1px #fff,
-          inset -2px -2px #808080, inset 2px 2px #dfdfdf;
-      }
-      #window .title .close {
-        margin-left: 2px;
-      }
-      #window .title i::before, #window .title i::after {
-        content: '';
-        position: absolute;
-        background: #000;
-      }
-      #window .title .min::before {
-        left: 4px;
-        top: 9px;
-        width: 6px;
-        height: 2px;
-      }
-      #window .title .max::before {
-        left: 3px;
-        top: 2px;
-        width: 9px;
-        height: 9px;
-        background: none;
-        border: 1px solid #000;
-        border-top-width: 2px;
-        box-sizing: border-box;
-      }
-      #window .title .close::before, #window .title .close::after {
-        left: 7px;
-        top: 3px;
-        width: 2px;
-        height: 8px;
-        transform: rotate(45deg);
-      }
-      #window .title .close::after {
-        transform: rotate(-45deg);
-      }
-      #client {
-        position: relative;
-        inset: auto;
-        border: 2px solid;
-        border-color: #808080 #fff #fff #808080;
       }
     }
     #pc {
@@ -577,11 +582,13 @@
       document.head.append(manifest);
     }
   </script>
+  <!-- The wallpaper, laid out at random before the first paint. -->
+  <script src="assets/memphis.js"></script>
 </head>
 <body>
-  <!-- Upright on a phone, the scene sits in a Windows 95 window; otherwise
-       the window is the whole screen with no frame. game.js fits the scene
-       to #client. -->
+  <!-- On a PC, and upright on a phone, the scene sits in a Windows 95
+       window; on a phone held sideways the window is the whole screen with
+       no frame. game.js fits the scene to #client. -->
   <div id="window">
     <div class="title" aria-hidden="true">
       <svg viewBox="0 0 16 16" shape-rendering="crispEdges">

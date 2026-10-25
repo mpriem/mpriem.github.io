@@ -848,7 +848,7 @@
   // was left, mid fade; open the curtains again.
   addEventListener('pageshow', e => { if (e.persisted) leaving = null; });
 
-  // Phones and tablets only; a PC keeps the layout below. Held sideways, the
+  // Phones and tablets only; a PC shows the whole photo in a window. Held sideways, the
   // photo fills the screen, cropping the keyboard at its bottom (from
   // KEYBOARD down) first. Held upright, the monitor's bezel spans the window
   // edge to edge. In photo pixels; index.html lays out the same cases.
@@ -858,8 +858,8 @@
   const upright = matchMedia('(orientation: portrait)');
 
   // The scene fits #client, the inside of the window it sits in (index.html):
-  // the whole screen, or upright on a phone a Windows 95 window as tall as
-  // the photo at its width.
+  // the whole screen on a phone held sideways, or else a Windows 95 window,
+  // upright on a phone as tall as the photo at its width.
   const client = document.getElementById('client');
 
   // The photo runs under a phone's notch and rounded corners (index.html
@@ -870,13 +870,33 @@
     + 'env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)';
   client.append(safe);
 
+  // On a PC, the gap kept between the window and the screen's edges.
+  const MARGIN = 16;
+  const win = document.getElementById('window');
+
   function fit() {
-    const phone = handheld.matches, tall = phone && upright.matches;
+    const phone = handheld.matches, tall = phone && upright.matches, desk = !phone;
+    win.classList.toggle('framed', tall || desk);
+    client.style.width = '';
     client.style.height = tall ? `${PC.h * client.clientWidth / BEZEL.w}px` : '';
+    if (desk) {
+      // The whole photo, as large as fits inside the window on the screen.
+      // The window's border and title bar measure the same at any size.
+      const sw = document.body.clientWidth, sh = document.body.clientHeight;
+      const edgeW = win.offsetWidth - client.clientWidth, edgeH = win.offsetHeight - client.clientHeight;
+      const k = Math.max(0, Math.min((sw - 2 * MARGIN - edgeW) / PC.w, (sh - 2 * MARGIN - edgeH) / PC.h));
+      const w = Math.floor(PC.w * k), h = Math.floor(PC.h * k);
+      client.style.width = `${w}px`;
+      client.style.height = `${h}px`;
+      win.style.left = `${Math.round((sw - w - edgeW) / 2)}px`;
+      win.style.top = `${Math.round((sh - h - edgeH) / 2)}px`;
+    } else {
+      win.style.left = win.style.top = '';
+    }
     const vw = client.clientWidth, vh = client.clientHeight;
-    // The part of the screen clear of the notch; upright, the scene sits in a
-    // window well inside it.
-    const inset = getComputedStyle(safe), clear = tall
+    // The part of the screen clear of the notch; in a window, the scene sits
+    // well inside it.
+    const inset = getComputedStyle(safe), clear = tall || desk
       ? { left: 0, top: 0, right: vw, bottom: vh }
       : {
         left: parseFloat(inset.paddingLeft), top: parseFloat(inset.paddingTop),
@@ -884,7 +904,7 @@
       };
     const s = tall ? vw / BEZEL.w
       : phone ? Math.max(vw / PC.w, vh / PC.h)
-      : Math.min(Math.max(vw / PC.w, vh / PC.h), vw / MONITOR.w, vh / MONITOR.h);
+      : Math.min(vw / PC.w, vh / PC.h);
     const pw = PC.w * s, ph = PC.h * s;
     // Centre on the screen, but never pull the photo's edge into the window.
     const place = (view, size, centre) => size <= view
