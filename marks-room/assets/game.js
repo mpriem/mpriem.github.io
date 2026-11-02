@@ -25,28 +25,26 @@
   const TOP = Math.ceil((H + BAR - GLASS.h / FILL) / 2);
   const inView = p => p.x >= SIDE && p.x < W - SIDE && p.y >= TOP && p.y < H + BAR - TOP;
   const GRID = { x: 7, y: 5, size: 10 }; // home.png is painted in 10px blocks, offset by (7,5)
-  const USER = 'mpriem';
-  const SITE_REPO = 'mpriem.github.io';
   const FONT = '8px "Press Start 2P", monospace';
   const CHAR_W = 8;
   const DEBUG = new URLSearchParams(location.search).has('debug');
 
-  // Houses already painted in home.png, best spot first. Repos are handed out
+  // Houses already painted in home.png, best spot first. Sites are handed out
   // in this order. rect = [x0, y0, x1, y1] hotspot, door = where the kid stands.
   const HOUSES = [
     { id: 'hall',     rect: [276, 170, 352, 208], door: [334, 209] },
     { id: 'tower',    rect: [283, 133, 305, 170], door: [283, 162] },
     { id: 'hilltop',  rect: [207, 116, 250, 139], door: [241, 138] },
     { id: 'wharf-e',  rect: [186, 178, 233, 207], door: [214, 209] },
-    { id: 'stilts',   rect: [370, 155, 401, 181], door: [386, 209] },
+    { id: 'stilts',   rect: [370, 155, 401, 181], door: [382, 180] },
     { id: 'cottage',  rect: [249, 167, 268, 181], door: [258, 184] },
     { id: 'wharf-w',  rect: [130, 185, 186, 207], door: [158, 209] },
-    { id: 'hut',      rect: [346, 166, 368, 187], door: [362, 209] },
-    { id: 'cliff-c',  rect: [149, 153, 187, 175], door: [170, 209] },
-    { id: 'cliff-b',  rect: [110, 143, 150, 162], door: [128, 209] },
+    { id: 'hut',      rect: [346, 166, 368, 187], door: [360, 190] },
+    { id: 'cliff-c',  rect: [149, 153, 187, 175], door: [168, 170] },
+    { id: 'cliff-b',  rect: [110, 143, 150, 162], door: [130, 157] },
     { id: 'ridge',    rect: [430, 137, 472, 151], door: [396, 209] },
     { id: 'lookout',  rect: [442,  92, 472, 137], door: [396, 209] },
-    { id: 'castle',   rect: [322,  12, 371,  54], door: [283, 162] }
+    { id: 'castle',   rect: [322,  12, 371,  54], door: [346,  40] }
   ];
 
   // White pixels in this image are where the kid can walk. It was traced from
@@ -63,27 +61,63 @@
     { id: 'talk', label: 'Talk to', key: 't', col: 1, row: 1 }
   ].map(v => ({ ...v, x: SIDE + 8 + v.col * 72, y: H + 13 + v.row * 11, w: 68, h: 10 }));
 
-  // Used when the GitHub API is unreachable or rate limited.
-  const FALLBACK_REPOS = [
-    { name: 'omarchy-background-changer', description: '', language: 'Shell', stars: 16 },
-    { name: 'omarchy-backdrop-plugin', description: 'Distinctive wallpapers, per-monitor picks, automatic rotation, and smooth transitions; all from your bar.', language: 'QML', stars: 3 },
-    { name: 'omarchy-keystrokes-plugin', description: 'Make every keystroke count. Beautiful, themed keycaps for Omarchy screencasts, streams, and demos.', language: 'QML', stars: 2 },
-    { name: 'omarchy-harpoon-plugin', description: 'Bookmark Hyprland windows and summon them to your current workspace. A Harpoon-inspired plugin for Omarchy.', language: 'Lua', stars: 0 },
-    { name: 'omarchy-background-changer-rust', description: '', language: 'Rust', stars: 0 },
-    { name: 'keystroke-overlay', description: '', language: 'Python', stars: 0 },
-    { name: 'eww-activewindow', description: '', language: 'Python', stars: 0 },
-    { name: 'openapi-core-recursion-error', description: 'Temporary repo created to reproduce an issue with openapi-core package', language: 'Python', stars: 0 },
-    { name: 'azfunctions-v4-devcontainer', description: 'Dev container for Azure Functions v4', language: 'Dockerfile', stars: 0 },
-    { name: 'azfunc-convertHtml2Pdf', description: '', language: 'C#', stars: 0 }
-  ].map(r => ({ ...r, url: `https://github.com/${USER}/${r.name}` }));
-
-  const KNOCKS = ['Hello? Anybody home?', 'Knock knock!', 'Ahoy in there!'];
-  const GRUMBLES = [
-    "Go away, kid. I'm compiling!",
-    "Shhh! The tests are finally passing.",
-    "We don't take kindly to merge conflicts around here.",
-    "Who's there? ...Wipe your boots before you come in."
+  // One house per corner of the site, best spot first. url is relative to
+  // this page; look is what the kid says about it, greeting what the house
+  // answers when he knocks.
+  const SITES = [
+    { name: 'ar-vr', url: '../ar-vr/', blurb: 'Other worlds: augmented and virtual reality, with a live hand tracking demo.',
+      look: 'A house with a headset hanging on the door. It looks bigger on the inside.',
+      greeting: "Mind the cable! Somebody's slicing cubes in here." },
+    { name: 'ai', url: '../ai/', blurb: 'Applied AI: what works, what does not, and what comes next.',
+      look: 'The windows blink as if the house is thinking.',
+      greeting: "I predicted you'd knock. 87% confidence." },
+    { name: 'software-development', url: '../software-development/', blurb: 'Building software, from NT4 scripts to Rust and QML.',
+      look: 'Somebody has been up all night in there. Again.',
+      greeting: "Go away, kid. I'm compiling!" },
+    { name: 'my-tech-stack', url: '../tech-stack/', blurb: 'The tools, languages and platforms I use every day.',
+      look: 'Every brick is a different shape, and somehow it still stands.',
+      greeting: 'Wipe your boots. We just refactored the hallway.' },
+    { name: '3d-printing', url: '../3d-printing/', blurb: 'Things I print, layer by layer.',
+      look: 'It hums softly. The roof is a little higher than yesterday.',
+      greeting: 'Come back in four hours. Only 62% done.' },
+    { name: 'reading', url: '../reading/', blurb: 'Books I read and keep coming back to.',
+      look: 'Books are stacked against every window.',
+      greeting: "Shhh! I'm at the good part." },
+    { name: 'arts', url: '../arts/', blurb: 'Drawing, pixels and other things made by hand.',
+      look: 'Paint drips down the walls. On purpose, I think.',
+      greeting: "Don't touch anything, it's still wet!" },
+    { name: 'abu-dhabi', url: '../abu-dhabi/', blurb: 'Three years in Abu Dhabi: the desert, the city and the water.',
+      look: 'Sand has blown right up to the doorstep. From a desert far, far away.',
+      greeting: "Marhaba! Come in out of the heat, it's 45 degrees out there." },
+    { name: 'gaming', url: '../gaming/', blurb: 'Games I play, from DOS floppies to VR.',
+      look: 'The windows flicker in sixteen colours. Somebody shouts "One more level!"',
+      greeting: "Can't talk now, I'm on the final boss!" },
+    { name: 'd&d', url: '../dnd/', blurb: 'Dungeons & Dragons: dice, maps and long nights of stories.',
+      look: 'Dice clatter behind the door. Somebody just rolled a natural 20.',
+      greeting: 'Roll for initiative! ...Oh, it is just you. Grab a chair.' }
   ];
+
+  // The castle on top of the island is locked. Its guard wants a password,
+  // and the kid only learns it once he has been inside every other house.
+  const CASTLE = 'castle';
+  const FAMILY_URL = '../family/';
+  const PASSWORD = { text: 'Family.', reply: "That's the one true answer. Welcome home!", ok: true };
+  const WRONG_PASSWORDS = [
+    { text: 'Password123', reply: "That's everybody's password. Next!" },
+    { text: 'Please?', reply: 'Manners are lovely. Still no.' },
+    { text: 'hunter2', reply: 'All I hear is *******.' },
+    { text: 'Open sesame!', reply: 'Wrong castle. Wrong century.' },
+    { text: 'admin', reply: "Nice try. I'm the admin around here." },
+    { text: 'The same as the Wi-Fi password.', reply: 'There is no Wi-Fi. This is a castle.' },
+    { text: "I forgot it. Can you reset it?", reply: 'Sure. What was the name of your first castle?' },
+    { text: 'Correct horse battery staple.', reply: 'Strong password. Wrong password.' },
+    { text: "Let me in, I'm with the band.", reply: "There's no band. There's me and a moat." },
+    { text: '42', reply: "That's the answer to something else." }
+  ];
+  const NEVER_MIND = { text: 'Never mind.', reply: 'Come back when you know it.' };
+
+  const RETURNS = ['Back outside. Where to next?', 'That was something! What else is on this island?', 'Fresh air! Which door next?'];
+  const KNOCKS = ['Hello? Anybody home?', 'Knock knock!', 'Ahoy in there!'];
 
   const COLORS = {
     verb: '#5fc9c9', object: '#f6ee6a', detail: '#9d8fe0', speech: '#ffffff', house: '#f0a860',
@@ -413,9 +447,16 @@
   }
 
   // Lines are spoken by the kid, or by a house when given as { who, text }.
+  // A line's then() runs once it has been said (or skipped).
   function say(lines) {
     kid.speech = lines.map(l => (typeof l === 'string' ? { who: kid, text: l } : l));
     kid.speechT = 0;
+  }
+
+  function nextLine() {
+    const line = kid.speech.shift();
+    kid.speechT = 0;
+    if (line?.then) line.then();
   }
 
   const timers = [];
@@ -442,10 +483,7 @@
     }
     if (kid.speech.length) {
       kid.speechT += dt;
-      if (kid.speechT > 1.4 + kid.speech[0].text.length * 0.055) {
-        kid.speech.shift();
-        kid.speechT = 0;
-      }
+      if (kid.speechT > 1.4 + kid.speech[0].text.length * 0.055) nextLine();
     } else if (!kid.path.length) {
       kid.idleT += dt;
       if (kid.idleT > 9 && kid.dir !== 'front') kid.dir = 'front';
@@ -550,6 +588,7 @@
   let verb = 'walk';
   let verbHover = null;
   let leaving = null; // { t, url } while fading out through a door
+  let dialogue = null; // [{ text, reply, ok }] while the kid picks an answer
   let started = false; // ADVENTURE.EXE has been run
   const mouse = { x: -99, y: -99, visible: false };
 
@@ -566,53 +605,39 @@
   mask.onload = () => { walk = buildWalkGrid(mask); };
   mask.src = WALK_MASK;
 
-  loadRepos().then(repos => {
-    hotspots = HOUSES.slice(0, repos.length)
-      .map((house, i) => ({ ...house, repo: repos[i] }))
-      .sort((a, b) => area(a.rect) - area(b.rect));
-    fillRepoList(repos);
-    buildLights();
-  });
-
   const area = ([x0, y0, x1, y1]) => (x1 - x0) * (y1 - y0);
+  hotspots = HOUSES.slice(0, SITES.length)
+    .map((house, i) => ({ ...house, site: SITES[i] }))
+    .concat({ ...HOUSES.find(h => h.id === CASTLE), site: { name: 'castle', locked: true, url: FAMILY_URL } })
+    .sort((a, b) => area(a.rect) - area(b.rect));
+  fillSiteList();
 
-  async function loadRepos() {
-    try {
-      const cached = sessionStorage.getItem('repos');
-      if (cached) return JSON.parse(cached);
-    } catch (e) { /* storage unavailable */ }
-    try {
-      const abort = new AbortController();
-      const timeout = setTimeout(() => abort.abort(), 4000);
-      const res = await fetch(`https://api.github.com/users/${USER}/repos?per_page=100`, { signal: abort.signal });
-      clearTimeout(timeout);
-      if (!res.ok) throw new Error(res.status);
-      const repos = (await res.json())
-        .filter(r => !r.fork && !r.archived && r.name !== SITE_REPO)
-        .sort((a, b) => b.stargazers_count - a.stargazers_count || b.pushed_at.localeCompare(a.pushed_at))
-        .map(r => ({ name: r.name, description: r.description || '', language: r.language || '', stars: r.stargazers_count, url: r.html_url }));
-      if (!repos.length) throw new Error('no repos');
-      try { sessionStorage.setItem('repos', JSON.stringify(repos)); } catch (e) { /* ignore */ }
-      return repos;
-    } catch (e) {
-      return FALLBACK_REPOS;
-    }
+  // Houses the kid has been inside, kept between visits.
+  const visited = new Set();
+  try { JSON.parse(localStorage.getItem('visited') || '[]').forEach(n => visited.add(n)); } catch (e) { /* storage unavailable */ }
+  function visit(name) {
+    visited.add(name);
+    try { localStorage.setItem('visited', JSON.stringify([...visited])); } catch (e) { /* ignore */ }
   }
+  const housesLeft = () => SITES.filter(site => !visited.has(site.name)).length;
+  const blurbOf = site => !site.locked ? site.blurb
+    : housesLeft() ? `Locked. Houses visited: ${SITES.length - housesLeft()}/${SITES.length}.`
+    : 'Locked. You know the password now.';
 
-  function fillRepoList(repos) {
-    const list = document.getElementById('repo-list');
+  function fillSiteList() {
+    const list = document.getElementById('site-list');
     if (!list) return;
-    list.replaceChildren(...repos.map(r => {
+    list.replaceChildren(...SITES.map(site => {
       const li = document.createElement('li');
       const a = document.createElement('a');
-      a.href = r.url;
-      a.textContent = r.description ? `${r.name}: ${r.description}` : r.name;
+      a.href = site.url;
+      a.textContent = `${site.name}: ${site.blurb}`;
       li.append(a);
       return li;
     }));
   }
 
-  // Candlelight: find the warm window pixels already painted in each repo
+  // Candlelight: find the warm window pixels already painted in each site's
   // house and give every window its own flickering glow on top.
   function buildLights() {
     if (!background || !hotspots.length || lights.length) return;
@@ -721,11 +746,12 @@
   // ---------------------------------------------------------------- verbs
 
   function act(verbId, house) {
-    const { name, description, language, stars } = house.repo;
+    const { name, look, greeting, url, locked } = house.site;
     const atDoor = then => walkTo(house.door, () => {
       face(house);
       later(0.5, () => { if (!kid.path.length) then(); });
     });
+    if (locked) return actCastle(verbId, house, atDoor);
 
     if (verbId === 'walk') {
       atDoor(() => {});
@@ -737,21 +763,63 @@
       later(0.5, () => {
         if (kid.path.length) return;
         kid.dir = 'front';
-        say([
-          `That's ${name}.`,
-          description || (language ? `Smells like ${language} in there. No sign says more.` : 'No sign says more. Very mysterious.'),
-          stars ? `Somebody carved ${plural(stars, 'star')} into the door.` : 'Not a single star carved into the door. Yet.'
-        ]);
+        say([`That's ${name}.`, look]);
       });
     } else if (verbId === 'talk') {
       atDoor(() => say([
         pick(KNOCKS),
-        { who: house, text: pick(GRUMBLES) },
-        { who: house, text: stars ? `${plural(stars, 'star')} so far. Bring me another and we'll talk.` : 'Nobody has starred me yet. You could be the first!' }
+        { who: house, text: greeting },
+        { who: house, text: 'Use the door if you want to come in.' }
       ]));
     } else if (verbId === 'use') {
-      atDoor(() => { leaving = { t: 0, url: house.repo.url }; });
+      atDoor(() => {
+        visit(name);
+        leaving = { t: 0, url };
+      });
     }
+  }
+
+  function actCastle(verbId, house, atDoor) {
+    const left = housesLeft();
+    if (verbId === 'walk') {
+      atDoor(() => {});
+    } else if (verbId === 'look') {
+      kid.path = [];
+      kid.onArrive = null;
+      face(house);
+      later(0.5, () => {
+        if (kid.path.length) return;
+        kid.dir = 'front';
+        say(['A castle, all the way up there. The door is locked tight.',
+          left ? `Maybe someone in the other houses knows the password. ${plural(left, 'house')} to go.`
+            : "I've been inside every house now. I think I finally know the password."]);
+      });
+    } else if (verbId === 'talk') {
+      atDoor(() => say([
+        pick(KNOCKS),
+        { who: house, text: 'Who goes there? Nobody gets in without the password.' }
+      ]));
+    } else if (verbId === 'use') {
+      atDoor(() => say([
+        'The door is locked.',
+        { who: house, text: 'Halt! What is the password?', then: () => { dialogue = passwordAnswers(); } }
+      ]));
+    }
+  }
+
+  // Two silly answers, then the real one if he knows it.
+  function passwordAnswers() {
+    const wrong = [...WRONG_PASSWORDS].sort(() => Math.random() - 0.5).slice(0, 2);
+    return [...wrong, housesLeft() ? NEVER_MIND : PASSWORD];
+  }
+
+  function answerWith(answer) {
+    const castle = hotspots.find(h => h.site.locked);
+    dialogue = null;
+    say([
+      answer.text,
+      { who: castle, text: answer.reply, then: answer.ok ? () => { leaving = { t: 0, url: FAMILY_URL }; } : null }
+    ]);
   }
 
   const verbLabel = id => VERBS.find(v => v.id === id).label;
@@ -821,6 +889,15 @@
 
   function clickAt(p) {
     if (!background || !walk || leaving || !inView(p)) return;
+    if (dialogue) {
+      // Pick an answer from the list, or click the island to walk away.
+      if (p.y < H) dialogue = null;
+      else {
+        const answer = dialogue[answerRow(p.y)];
+        if (answer) answerWith(answer);
+        return;
+      }
+    }
     if (p.y >= H) {
       const v = verbAt(p.x, p.y);
       if (v) verb = v.id;
@@ -836,17 +913,21 @@
   addEventListener('keydown', e => {
     if (!started) return;
     if (e.key === '.' || e.key === 'Escape') { // skip a line, like in the old games
-      kid.speech.shift();
-      kid.speechT = 0;
+      nextLine();
+      return;
+    }
+    if (dialogue) {
+      const answer = dialogue[Number(e.key) - 1];
+      if (answer) answerWith(answer);
       return;
     }
     const v = VERBS.find(v => v.key === e.key.toLowerCase());
     if (v && !e.ctrlKey && !e.metaKey && !e.altKey) verb = v.id;
   });
 
-  // Coming back from GitHub with the back button restores this page as it
+  // Coming back from a subsite with the back button restores this page as it
   // was left, mid fade; open the curtains again.
-  addEventListener('pageshow', e => { if (e.persisted) leaving = null; });
+  addEventListener('pageshow', e => { if (e.persisted) leaving = dialogue = null; });
 
   // Phones and tablets only; a PC shows the whole photo in a window. Held sideways, the
   // photo fills the screen, cropping the keyboard at its bottom (from
@@ -947,16 +1028,29 @@
 
   // ---------------------------------------------------------------- frame
 
+  // The password answers replace the verbs, one per row.
+  const ANSWER_Y = H + 3, ANSWER_ROW = 11;
+  const answerRow = y => Math.floor((y - ANSWER_Y + 1) / ANSWER_ROW);
+
   function drawInterface() {
     ctx.fillStyle = '#000';
     ctx.fillRect(0, H, W, BAR);
 
+    if (dialogue) {
+      const row = mouse.visible && mouse.y >= H ? answerRow(mouse.y) : -1;
+      dialogue.forEach((answer, i) => {
+        const color = i === row ? COLORS.verbHover : COLORS.verb;
+        ctx.drawImage(textImage(`${i + 1}. ${answer.text}`, color), SIDE + 8 - 2, ANSWER_Y + i * ANSWER_ROW - 2);
+      });
+      return;
+    }
+
     // Sentence line: "Look at omarchy-backdrop-plugin"
     const sentenceVerb = verbHover && !hover ? verbHover.id : verb;
     const verbImg = textImage(verbLabel(sentenceVerb), COLORS.verb);
-    ctx.drawImage(verbImg, W / 2 - (verbImg.width + (hover ? textImage(hover.repo.name, COLORS.object).width + 2 : 0)) / 2, H + 1);
+    ctx.drawImage(verbImg, W / 2 - (verbImg.width + (hover ? textImage(hover.site.name, COLORS.object).width + 2 : 0)) / 2, H + 1);
     if (hover) {
-      const nameImg = textImage(hover.repo.name, COLORS.object);
+      const nameImg = textImage(hover.site.name, COLORS.object);
       ctx.drawImage(nameImg, W / 2 - (verbImg.width + nameImg.width + 2) / 2 + verbImg.width + 2, H + 1);
     }
 
@@ -965,12 +1059,10 @@
       ctx.drawImage(textImage(v.label, color), v.x - 2, v.y - 2);
     }
 
-    // Details of the hovered repo, to the right of the verbs.
+    // Details of the hovered site, to the right of the verbs.
     if (hover) {
-      const { description, language, stars } = hover.repo;
       const left = VERBS[0].x + 152, maxChars = Math.floor((W - SIDE - 8 - left) / CHAR_W);
-      const head = [language, stars ? `*${stars}` : ''].filter(Boolean).join('  ');
-      const lines = wrap([head, description].filter(Boolean).join('  '), maxChars);
+      const lines = wrap(blurbOf(hover.site), maxChars);
       if (lines.length > 2) lines[1] = lines[1].slice(0, maxChars - 3).trimEnd() + '...';
       lines.slice(0, 2).forEach((l, i) => ctx.drawImage(textImage(l, COLORS.detail), left - 2, H + 13 + i * 11));
     }
@@ -988,14 +1080,20 @@
     ctx.fillRect(x, y + 2, 1, 4);
   }
 
+  // Text sits just above a house, or below it when there is no room above.
+  const centreOf = ({ rect: [x0, , x1] }) => (x0 + x1) / 2;
+  function aboveOrBelow({ rect: [, y0, , y1] }, lines, gap) {
+    return y0 - gap - lines * 9 >= TOP + 2 ? y0 - gap : y1 + gap + lines * 9;
+  }
+
   function drawSpeech() {
     if (!kid.speech.length) return;
     const { who, text } = kid.speech[0];
     if (who === kid) {
       drawTextCentered(wrap(text, 30), kid.x, Math.min(kid.y, H) - heightAt(kid.y) - 3, COLORS.speech);
     } else {
-      const [x0, y0, x1] = who.rect;
-      drawTextCentered(wrap(text, 30), (x0 + x1) / 2, y0 - 2, COLORS.house);
+      const lines = wrap(text, 30);
+      drawTextCentered(lines, centreOf(who), aboveOrBelow(who, lines.length, 2), COLORS.house);
     }
   }
 
@@ -1037,8 +1135,7 @@
       drawKid();
       if (DEBUG) drawDebug();
       if (hover && !kid.speech.length) {
-        const [x0, y0, x1] = hover.rect;
-        drawTextCentered([hover.repo.name], (x0 + x1) / 2, y0 - 1, COLORS.object);
+        drawTextCentered([hover.site.name], centreOf(hover), aboveOrBelow(hover, 1, 1), COLORS.object);
       }
       drawSpeech();
     } else {
@@ -1047,13 +1144,16 @@
     drawInterface();
     drawCursor();
 
-    // Going inside: fade to black, then follow the door to GitHub.
+    // Going inside: fade to black, then follow the door to its subsite.
     if (leaving) {
       leaving.t += dt;
       ctx.fillStyle = `rgba(0, 0, 0, ${Math.min(1, leaving.t / 0.6)})`;
       ctx.fillRect(0, 0, W, H + BAR);
       if (leaving.t >= 0.6 && !leaving.gone) {
         leaving.gone = true;
+        // Remembered for the back button, in case the browser reloads this
+        // page instead of restoring it (boot.js).
+        try { sessionStorage.setItem('island', leaving.url.split('/').at(-2)); } catch (e) { /* ignore */ }
         location.href = leaving.url;
       }
     }
@@ -1067,19 +1167,27 @@
 
   // The island loads straight away, but only comes to life when boot.js runs
   // ADVENTURE.EXE.
-  window.startAdventure = () => {
+  window.startAdventure = from => {
     if (started) return;
     started = true;
     canvas.style.visibility = 'visible';
-    // The kid strolls in from the bottom of the screen and introduces himself.
-    kid.path = [[318, 288]];
-    kid.onArrive = () => {
+    const house = from && hotspots.find(h => h.site.url === `../${from}/`);
+    if (house) {
+      // Back out of a house: he steps out of its door.
+      [kid.x, kid.y] = house.door;
       kid.dir = 'front';
-      say([
-        'My name is Mark Priem, and I want to be an engineer!',
-        'Every candle-lit window on this island has a story to tell about me.'
-      ]);
-    };
+      say([pick(RETURNS)]);
+    } else {
+      // The kid strolls in from the bottom of the screen and introduces himself.
+      kid.path = [[318, 288]];
+      kid.onArrive = () => {
+        kid.dir = 'front';
+        say([
+          'My name is Mark Priem, and I want to be an engineer!',
+          'Every candle-lit window on this island has a story to tell about me.'
+        ]);
+      };
+    }
     last = performance.now();
     raf = requestAnimationFrame(frame);
   };
@@ -1097,7 +1205,7 @@
       speech: [], speechT: 0, idleT: 0
     });
     timers.length = 0;
-    hover = verbHover = leaving = null;
+    hover = verbHover = leaving = dialogue = null;
     verb = 'walk';
     Object.assign(stick, { x: 0, y: 0, aim: null });
     mouse.visible = false;

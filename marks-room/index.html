@@ -246,23 +246,8 @@
       background: rgba(40, 28, 16, 0.2);
     }
     /* A ring now and then, so the dark screen doesn't leave you guessing,
-       traced around the button like the glow on the desk toys. */
-    .power::after {
-      content: '';
-      position: absolute;
-      inset: -1px;
-      border-radius: 50%;
-      border: 2px solid rgba(255, 244, 214, 0.7);
-      filter: drop-shadow(0 0 4px rgba(255, 232, 180, 0.8));
-      opacity: 0;
-      animation: beckon 2.4s ease-in-out 3s infinite;
-      pointer-events: none;
-    }
-    .power:hover::after, .power:focus-visible::after {
-      opacity: 1;
-      animation: none;
-    }
-    .power.on::after {
+       drawn exactly like the glow on the desk toys below. */
+    .power.on svg {
       animation: none;
     }
     @keyframes beckon {
@@ -282,7 +267,7 @@
     .traced {
       border-radius: 0;
     }
-    .traced svg {
+    .power svg, .traced svg {
       position: absolute;
       inset: 0;
       width: 100%;
@@ -293,13 +278,14 @@
       animation: beckon 2.4s ease-in-out 3s infinite;
       pointer-events: none;
     }
-    .traced polygon {
+    .power circle, .traced polygon {
       fill: none;
       stroke: rgba(255, 244, 214, 0.7);
       stroke-width: 2px;
       stroke-linejoin: round;
       vector-effect: non-scaling-stroke;
     }
+    .power:hover svg, .power:focus-visible svg,
     .traced:hover svg, .traced:focus-visible svg, .traced[aria-pressed="true"] svg, .traced.on svg {
       opacity: 1;
       animation: none;
@@ -602,7 +588,7 @@
     </div>
     <div id="client">
       <div id="pc">
-        <canvas id="game" aria-label="A moonlit pixel-art island. Each candle-lit house is one of Mark Priem's GitHub projects."></canvas>
+        <canvas id="game" aria-label="A moonlit pixel-art island. Each candle-lit house leads to a corner of Mark Priem's site."></canvas>
         <div id="glass">
           <canvas id="dos" aria-hidden="true"></canvas>
           <canvas id="doom" aria-label="DOOM" hidden></canvas>
@@ -622,8 +608,8 @@
           </div>
         </div>
         <img src="assets/PC.webp" alt="" width="1671" height="941">
-        <button class="hw power" style="--x: 1568; --y: 577; --w: 86; --h: 86" aria-label="Switch on the computer"></button>
-        <button class="hw power monitor" style="--x: 1138.5; --y: 700.5; --w: 48; --h: 48" aria-label="Switch on the computer"></button>
+        <button class="hw power" style="--x: 1568; --y: 577; --w: 86; --h: 86" aria-label="Switch on the computer"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><circle cx="50" cy="50" r="50"/></svg></button>
+        <button class="hw power monitor" style="--x: 1138.5; --y: 700.5; --w: 48; --h: 48" aria-label="Switch on the computer"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><circle cx="50" cy="50" r="50"/></svg></button>
         <button class="hw traced audi" style="--x: 1514; --y: 143.5; --w: 292; --h: 101" aria-label="Rev the Audi quattro">
           <svg viewBox="1368 93 292 101" preserveAspectRatio="none" aria-hidden="true">
             <polygon points="1370,190 1370,169 1376,151 1385,145.5 1442,131 1450,132.5 1476,107.5 1496,100 1497.5,96 1517.5,95.5 1520,98.5 1577.5,101 1607.5,112.5 1610,110 1652.5,103.5 1656.5,125 1651,140 1657.5,167.5 1654,176 1622.5,179 1520,182.5 1507.5,185 1435,187.5 1375,192"/>
@@ -649,12 +635,17 @@
     <div id="tutorial"></div>
   </div>
   <div id="fade"></div>
-  <nav class="sr-only" aria-label="Projects">
-    <ul id="repo-list"></ul>
+  <nav class="sr-only" aria-label="Houses">
+    <ul id="site-list"></ul>
   </nav>
   <noscript>
-    This island needs JavaScript. Meanwhile, the projects are on
-    <a href="https://github.com/mpriem">github.com/mpriem</a>.
+    This island needs JavaScript. Meanwhile, the houses are:
+    <a href="../ar-vr/">ar-vr</a>, <a href="../ai/">ai</a>,
+    <a href="../software-development/">software development</a>,
+    <a href="../tech-stack/">my tech stack</a>, <a href="../3d-printing/">3d printing</a>,
+    <a href="../reading/">reading</a>, <a href="../arts/">arts</a>,
+    <a href="../abu-dhabi/">abu dhabi</a>, <a href="../gaming/">gaming</a> and
+    <a href="../dnd/">d&amp;d</a>.
   </noscript>
   <script>
     // A phone in a browser tab gets Setup, which shows how to install the

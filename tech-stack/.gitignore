@@ -1,0 +1,7 @@
+# The source screenshot stays local; the page uses the web copy in media/.
+/*
+!/.gitignore
+!/index.html
+!/media/
+!/css/
+!/js/

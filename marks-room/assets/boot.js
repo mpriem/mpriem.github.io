@@ -256,14 +256,17 @@
   // Hard disk activity: the LED flickers along with the heads.
   async function hdd(ms) {
     const end = performance.now() + ms;
-    while (performance.now() < end) {
-      light(LED.hdd, true);
-      sound.seek();
-      await wait(rand(30, 110));
-      light(LED.hdd, Math.random() < 0.3);
-      await wait(rand(20, 90));
+    try {
+      while (performance.now() < end) {
+        light(LED.hdd, true);
+        sound.seek();
+        await wait(rand(30, 110));
+        light(LED.hdd, Math.random() < 0.3);
+        await wait(rand(20, 90));
+      }
+    } finally {
+      light(LED.hdd, false);
     }
-    light(LED.hdd, false);
   }
 
   // Reading drive A:. The drive's own LED burns while the motor runs; the
@@ -272,17 +275,21 @@
     light(LED.drive, true);
     const stop = sound.motor();
     const end = performance.now() + ms;
-    await wait(250);
-    while (performance.now() < end) {
-      const n = Math.random() < 0.25 ? Math.round(rand(8, 30)) : Math.round(rand(1, 3));
-      sound.steps(n, n > 3 ? 0.005 : 0.012);
-      light(LED.floppy, true);
-      await wait(rand(60, 200));
+    try {
+      await wait(250);
+      while (performance.now() < end) {
+        const n = Math.random() < 0.25 ? Math.round(rand(8, 30)) : Math.round(rand(1, 3));
+        sound.steps(n, n > 3 ? 0.005 : 0.012);
+        light(LED.floppy, true);
+        await wait(rand(60, 200));
+        light(LED.floppy, false);
+        await wait(rand(20, 120));
+      }
+    } finally {
+      stop();
+      light(LED.drive, false);
       light(LED.floppy, false);
-      await wait(rand(20, 120));
     }
-    stop();
-    light(LED.drive, false);
   }
 
   // POST's floppy check: the head runs out to the last track and back.
@@ -290,14 +297,17 @@
     light(LED.drive, true);
     light(LED.floppy, true);
     const stop = sound.motor();
-    await wait(300);
-    sound.steps(40, 0.004);
-    await wait(450);
-    sound.steps(40, 0.004);
-    await wait(500);
-    stop();
-    light(LED.drive, false);
-    light(LED.floppy, false);
+    try {
+      await wait(300);
+      sound.steps(40, 0.004);
+      await wait(450);
+      sound.steps(40, 0.004);
+      await wait(500);
+    } finally {
+      stop();
+      light(LED.drive, false);
+      light(LED.floppy, false);
+    }
   }
 
   // ---------------------------------------------------------------- screen
@@ -534,6 +544,7 @@
   // ---------------------------------------------------------------- boot
 
   let on = false, skipMemoryTest = false;
+  let posting = false; // DEL is listened for from the Award screen until MS-DOS starts
 
   function setPower(state) {
     on = state;
@@ -576,6 +587,7 @@
     println('PENTIUM II CPU at 300MHz');
     print('Memory Test :  ');
     printAt(0, ROWS - 2, 'Press DEL to enter SETUP, ESC to skip memory test');
+    posting = true;
     printAt(0, ROWS - 1, '10/24/98-i440BX-W977-2A69KA2BC-00');
     const memCol = screen.col, memRow = screen.row;
     await wait(500);
@@ -648,6 +660,7 @@
     println();
     await floppy(1600);
 
+    posting = false;
     println('Starting MS-DOS...');
     println();
     await floppy(1500);
@@ -666,6 +679,7 @@
 
   function powerOff() {
     generation++;
+    posting = false;
     setPower(false);
     sound.off();
     Object.values(LED).forEach(led => light(led, false));
@@ -688,8 +702,27 @@
     else powerOn().catch(ignoreOff);
   }
 
+  // DEL during POST would enter the BIOS setup. This one has a shortcut:
+  // it abandons the rest of the boot and goes straight to the island.
+  async function hyperspace() {
+    posting = false;
+    generation++; // abandons the POST still running in powerOn()
+    printAt(0, ROWS - 2, 'Entering SETUP...'.padEnd(COLS));
+    await wait(700);
+    cls();
+    println('Going into hyperspace...', WHITE);
+    input.disabled = false;
+    input.maxLength = COLS - PROMPT.length - 1;
+    await hdd(1400);
+    await enterGame();
+  }
+
   addEventListener('keydown', e => {
     if (e.key === 'Escape') skipMemoryTest = true;
+    if (e.key === 'Delete' && posting) {
+      e.preventDefault();
+      hyperspace().catch(ignoreOff);
+    }
   });
 
   // ---------------------------------------------------------------- DOS
@@ -862,6 +895,10 @@
 
   async function launch() {
     await floppy(1800);
+    await enterGame();
+  }
+
+  async function enterGame() {
     // The game switches the card to graphics mode: a moment of black while
     // the monitor clicks over to the new signal.
     screen.on = false;
@@ -873,9 +910,10 @@
     sound.settle();
   }
 
-  function startGame() {
+  // `from` is the house the kid steps out of (game.js), if any.
+  function startGame(from) {
     crt.hidden = input.hidden = true;
-    window.startAdventure();
+    window.startAdventure(from);
   }
 
   let doomGame = null;
@@ -944,7 +982,25 @@
     if (!on || !b.classList.contains('monitor')) togglePower();
   }));
   requestAnimationFrame(frame);
-  if (DEBUG) {
+  // Coming back out of one of the houses' pages (?island=ar-vr), or with the
+  // back button when the browser reloads the page instead of restoring it:
+  // the PC is still on and the island still running, with the kid outside
+  // that house.
+  let from = new URLSearchParams(location.search).get('island');
+  try {
+    if (from === null && performance.getEntriesByType('navigation')[0]?.type === 'back_forward') from = sessionStorage.getItem('island');
+    sessionStorage.removeItem('island');
+  } catch (e) { /* storage unavailable */ }
+  if (from !== null) {
+    history.replaceState(null, '', location.pathname);
+    setPower(true);
+    input.disabled = false;
+    input.maxLength = COLS - PROMPT.length - 1;
+    (async () => {
+      if (touch.matches && !await pad.open(document.getElementById('game'), window.adventurePad, TUTORIAL.adventure)) return;
+      startGame(from);
+    })().catch(ignoreOff);
+  } else if (DEBUG) {
     // Straight to the island while working on it.
     setPower(true);
     startGame();

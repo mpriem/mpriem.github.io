@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Software Development · Mark Priem</title>
+  <meta name="description" content="Mark Priem on software development: not a great programmer, but one who loves it. Learning languages, recreating apps, and finally finishing projects.">
+  <meta name="theme-color" content="#0c0e12">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .about p + p { margin-top: 0.6em; }
+    .projects li + li { margin-top: 1em; }
+    .projects b { color: var(--green); }
+    .projects .lang { color: var(--yellow); }
+  </style>
+</head>
+<body>
+  <header class="bar" aria-hidden="true">
+    <span><b>mpriem</b> 1:software-development*</span>
+  </header>
+
+  <main class="term">
+    <section class="whoami">
+      <p class="cmd"><span class="ps1"><span class="user">mark@mpriem</span><span class="sign">:</span><span class="path">~/software-development</span><span class="sign">$ </span></span>cat README</p>
+      <h1>Software Development</h1>
+      <p class="tagline">Not very good at it. Love it anyway.</p>
+      <p class="links">
+        <a href="https://github.com/mpriem">github</a>
+        <a href="../marks-room/?island=software-development">back to the island</a>
+        <a href="../">~/profile</a>
+      </p>
+    </section>
+
+    <section class="about">
+      <p class="cmd"><span class="ps1"><span class="user">mark@mpriem</span><span class="sign">:</span><span class="path">~/software-development</span><span class="sign">$ </span></span>cat about.txt</p>
+      <p>I'm not a very good programmer, but I love programming. I started with scripts on NT4 and never really stopped.</p>
+      <p>What I enjoy most is learning a new language and trying to recreate an application I like, just to see how it works on the inside.</p>
+      <p>For years I hardly finished anything. Life always got in the way, and I didn't mind: I have way too many hobbies and interests. Since AI came along, I actually get projects done.</p>
+      <p>Most of my code lives on my own Forgejo server at home, so it isn't public. A few things are on <a href="https://github.com/mpriem">GitHub</a>.</p>
+    </section>
+
+    <section>
+      <p class="cmd"><span class="ps1"><span class="user">mark@mpriem</span><span class="sign">:</span><span class="path">~/software-development</span><span class="sign">$ </span></span>ls recent/</p>
+      <h2 class="sr-only">What I've been working on</h2>
+      <ul class="projects">
+        <li>
+          <b>Moonbound desktop</b> <span class="lang">QML, C++</span><br>
+          My Omarchy rice: a spellbook look for the whole desktop, with a matching theme and an animated book menu.
+        </li>
+        <li>
+          <b>Enchanted edges</b> <span class="lang">C++23</span><br>
+          A Hyprland plugin that puts glowing particles around the focused window. My first native plugin.
+        </li>
+        <li>
+          <b>Harpoon</b> <span class="lang">QML, JavaScript</span><br>
+          Bookmark up to 10 windows and jump to them from anywhere. Inspired by ThePrimeagen's Harpoon for Neovim.
+        </li>
+        <li>
+          <b>Backdrop</b> <span class="lang">QML, Python</span><br>
+          Wallpapers per workspace or monitor, with timed rotation and animated transitions.
+        </li>
+        <li>
+          <b>Keystrokes</b> <span class="lang">QML, JavaScript</span><br>
+          Shows the keys I press as keycaps on screen, for recordings and demos. A rewrite of my older <a href="https://github.com/mpriem/keystroke-overlay">Python version</a>.
+        </li>
+        <li>
+          <b>Neovim plugins</b> <span class="lang">Lua</span><br>
+          A Codex pane inside Neovim, and a notes panel under the file explorer.
+        </li>
+        <li>
+          <b>BOOMDOCK AI</b> <span class="lang">TypeScript, Python</span><br>
+          My own app for talking to AI agents and running Codex or Claude Code in sandboxes, from my phone. Plus an MCP server that ties it to my projects, Forgejo and calendar.
+        </li>
+        <li>
+          <b>Archimedes</b> <span class="lang">Rust</span><br>
+          A little owl that lives on my Hyprland desktop and flies between monitors. GTK4 and OpenGL.
+        </li>
+        <li>
+          <b>GitHub publisher</b> <span class="lang">Python</span><br>
+          I develop in Forgejo and push a clean snapshot of a project to GitHub when I want to share it.
+        </li>
+        <li>
+          <b>dots</b> <span class="lang">Bash</span><br>
+          A small tool to keep my dotfiles in git and sync them between my machines.
+        </li>
+      </ul>
+    </section>
+
+    <section>
+      <p class="cmd"><span class="ps1"><span class="user">mark@mpriem</span><span class="sign">:</span><span class="path">~/software-development</span><span class="sign">$ </span></span>ls learning/</p>
+      <h2 class="sr-only">Learning</h2>
+      <ul class="projects">
+        <li><b>C</b> <span class="dim">C for Programmers: pointers, malloc, structs and the occasional goto</span></li>
+        <li><b>Computer graphics</b> <span class="dim">drawing things from scratch in C</span></li>
+        <li><b>Rust</b> <span class="dim">the book, a guessing game, lots of fighting the borrow checker</span></li>
+        <li><b>Zig</b> <span class="dim">working through Ziglings</span></li>
+        <li><b>Python</b> <span class="dim">Advent of Code 2025, <a href="https://github.com/mpriem/personal-agents">personal agents</a></span></li>
+      </ul>
+    </section>
+
+    <section>
+      <p class="cmd"><span class="ps1"><span class="user">mark@mpriem</span><span class="sign">:</span><span class="path">~/software-development</span><span class="sign">$ </span></span></p>
+    </section>
+  </main>
+</body>
+</html>

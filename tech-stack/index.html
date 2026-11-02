@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>My Tech Stack</title>
+  <meta name="description" content="Mark Priem's tech stack as a spellbook: Linux and Omarchy, Neovim, Python, JavaScript and Rust, a Surface Laptop and a shelf of self-hosted servers, AI agents, a riced desktop and ten favourite command-line tools.">
+  <meta property="og:title" content="My Tech Stack · Mark Priem">
+  <meta property="og:description" content="The tools, languages and machines I use every day, told as a spellbook.">
+  <meta property="og:image" content="https://mpriem.github.io/tech-stack/media/rice.jpg">
+  <meta name="theme-color" content="#0b0d12">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23101218'/%3E%3Cpath d='M7 8c4-1 7 0 9 2 2-2 5-3 9-2v16c-4-1-7 0-9 2-2-2-5-3-9-2z' fill='none' stroke='%23d0aa68' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M16 10v16' stroke='%23d0aa68' stroke-width='2'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=JetBrains+Mono:wght@400;700&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Moonlit mountains behind everything, a nod to the Moonbound rice. Each layer drifts at its own pace as the story goes on. -->
+  <div class="sky" aria-hidden="true">
+    <i class="moon"></i>
+    <svg class="peaks far" viewBox="0 0 2400 600" preserveAspectRatio="xMidYMax slice"><path d="M0,600 L0,309 L24,283 L48,244 L72,210 L96,179 L120,166 L144,206 L168,225 L192,235 L216,254 L240,281 L264,307 L288,327 L312,313 L336,298 L360,295 L384,291 L408,281 L432,262 L456,247 L480,228 L504,215 L528,205 L552,202 L576,227 L600,239 L624,250 L648,273 L672,284 L696,304 L720,310 L744,297 L768,287 L792,286 L816,305 L840,312 L864,326 L888,338 L912,350 L936,303 L960,260 L984,223 L1008,178 L1032,190 L1056,224 L1080,267 L1104,306 L1128,350 L1152,361 L1176,347 L1200,331 L1224,327 L1248,309 L1272,300 L1296,289 L1320,277 L1344,256 L1368,252 L1392,245 L1416,256 L1440,262 L1464,284 L1488,292 L1512,303 L1536,311 L1560,324 L1584,336 L1608,355 L1632,366 L1656,379 L1680,385 L1704,396 L1728,418 L1752,430 L1776,433 L1800,433 L1824,430 L1848,429 L1872,433 L1896,436 L1920,431 L1944,432 L1968,429 L1992,425 L2016,428 L2040,430 L2064,429 L2088,428 L2112,435 L2136,425 L2160,427 L2184,426 L2208,426 L2232,431 L2256,431 L2280,435 L2304,428 L2328,435 L2352,435 L2376,433 L2400,434 L2400,600 Z"/></svg>
+    <svg class="peaks mid" viewBox="0 0 2400 600" preserveAspectRatio="xMidYMax slice">
+      <path d="M0,600 L0,338 L24,308 L48,292 L72,296 L96,323 L120,344 L144,352 L168,367 L192,386 L216,398 L240,410 L264,423 L288,423 L312,390 L336,363 L360,358 L384,388 L408,412 L432,426 L456,433 L480,443 L504,464 L528,427 L552,396 L576,368 L600,348 L624,321 L648,322 L672,352 L696,381 L720,404 L744,429 L768,423 L792,421 L816,403 L840,401 L864,405 L888,397 L912,401 L936,410 L960,418 L984,430 L1008,442 L1032,427 L1056,419 L1080,396 L1104,378 L1128,372 L1152,357 L1176,333 L1200,322 L1224,316 L1248,301 L1272,291 L1296,294 L1320,311 L1344,337 L1368,341 L1392,354 L1416,374 L1440,394 L1464,406 L1488,428 L1512,445 L1536,445 L1560,438 L1584,427 L1608,406 L1632,401 L1656,380 L1680,378 L1704,401 L1728,414 L1752,427 L1776,441 L1800,450 L1824,468 L1848,480 L1872,498 L1896,493 L1920,502 L1944,501 L1968,499 L1992,494 L2016,501 L2040,493 L2064,500 L2088,499 L2112,500 L2136,508 L2160,487 L2184,477 L2208,465 L2232,438 L2256,433 L2280,414 L2304,395 L2328,383 L2352,372 L2376,355 L2400,360 L2400,600 Z"/>
+      <!-- A castle on the peak, with a few windows still lit. -->
+      <path d="M1236,306 V262 h6 v-8 h5 v8 h6 v-30 l7,-14 l7,14 v30 h8 v-48 l9,-18 l9,18 v48 h8 v-22 l6,-11 l6,11 v22 h6 v-10 h5 v10 h6 V300 Z"/>
+      <g class="lit"><rect x="1263" y="244" width="2.5" height="5"/><rect x="1285" y="222" width="2.5" height="5"/><rect x="1285" y="240" width="2.5" height="5"/><rect x="1306" y="262" width="2.5" height="5"/></g>
+    </svg>
+    <i class="mist"></i>
+    <svg class="peaks near" viewBox="0 0 2400 600" preserveAspectRatio="xMidYMax slice"><path d="M0,600 L0,571 L24,570 L48,572 L72,574 L96,572 L120,567 L144,576 L168,561 L192,548 L216,540 L240,522 L264,505 L288,492 L312,507 L336,510 L360,526 L384,537 L408,547 L432,540 L456,537 L480,523 L504,524 L528,521 L552,512 L576,501 L600,499 L624,511 L648,517 L672,513 L696,522 L720,526 L744,538 L768,544 L792,541 L816,549 L840,559 L864,553 L888,552 L912,541 L936,542 L960,524 L984,525 L1008,507 L1032,503 L1056,496 L1080,485 L1104,485 L1128,501 L1152,505 L1176,493 L1200,490 L1224,488 L1248,494 L1272,502 L1296,507 L1320,512 L1344,519 L1368,520 L1392,532 L1416,537 L1440,547 L1464,552 L1488,562 L1512,566 L1536,576 L1560,567 L1584,556 L1608,545 L1632,527 L1656,507 L1680,503 L1704,480 L1728,481 L1752,495 L1776,505 L1800,516 L1824,498 L1848,479 L1872,458 L1896,470 L1920,481 L1944,499 L1968,517 L1992,536 L2016,522 L2040,510 L2064,493 L2088,478 L2112,454 L2136,467 L2160,484 L2184,497 L2208,482 L2232,475 L2256,465 L2280,475 L2304,487 L2328,493 L2352,478 L2376,466 L2400,479 L2400,600 Z"/></svg>
+  </div>
+
+  <!-- The top bar of the desktop: chapters as workspaces, a clock, and the way home. -->
+  <header class="top">
+    <nav class="workspaces" id="chapters" aria-label="Chapters">
+      <button type="button" aria-label="Chapter one: OS"><b>I</b><span>OS</span></button>
+      <button type="button" aria-label="Chapter two: Editor"><b>II</b><span>Editor</span></button>
+      <button type="button" aria-label="Chapter three: Languages"><b>III</b><span>Languages</span></button>
+      <button type="button" aria-label="Chapter four: Hardware"><b>IV</b><span>Hardware</span></button>
+      <button type="button" aria-label="Chapter five: Platforms"><b>V</b><span>Platforms</span></button>
+      <button type="button" aria-label="Chapter six: AI"><b>VI</b><span>AI</span></button>
+      <button type="button" aria-label="Chapter seven: Ricing"><b>VII</b><span>Ricing</span></button>
+      <button type="button" aria-label="Chapter eight: Tools"><b>VIII</b><span>Tools</span></button>
+    </nav>
+    <time class="clock" id="clock" aria-hidden="true"></time>
+    <a class="home" id="back" href="../marks-room/?island=tech-stack">&larr; island</a>
+  </header>
+
+  <!-- A page torn from the grimoire, telling the story. -->
+  <section class="story" aria-live="polite">
+    <span class="numeral" data-field="num" aria-hidden="true"></span>
+    <p class="eyebrow" data-field="eyebrow"></p>
+    <h1 data-field="title"></h1>
+    <p class="text" data-field="text"></p>
+    <div class="controls">
+      <button type="button" id="prev" aria-label="Previous page"><svg viewBox="0 0 16 16"><path d="M10.5 2 4.5 8l6 6 1.2-1.2L6.9 8l4.8-4.8z"/></svg></button>
+      <button type="button" id="pause" aria-label="Pause"><svg viewBox="0 0 16 16" id="pause-icon"><path d="M4 2h3v12H4zM9 2h3v12H9z"/></svg></button>
+      <button type="button" id="next" aria-label="Next page"><svg viewBox="0 0 16 16"><path d="M5.5 2 4.3 3.2 9.1 8l-4.8 4.8L5.5 14l6-6z"/></svg></button>
+      <span class="count" id="count"></span>
+    </div>
+    <div class="progress" aria-hidden="true"><i id="bar"></i></div>
+  </section>
+
+  <main class="stage" id="stage" aria-roledescription="carousel" aria-label="Screenshots, recordings and panels about my tech stack">
+    <p class="hint">Tap the window for the next one</p>
+  </main>
+
+  <!-- HTML panels. Their contents are sized in cqw, so they scale with the window. -->
+  <template id="tpl-path">
+    <div class="panel path-card">
+      <h2>Leaving Windows behind</h2>
+      <ol>
+        <li class="in old"><svg class="glyph" viewBox="0 0 16 16" fill="currentColor"><path d="M1 1h6.5v6.5H1zM8.5 1H15v6.5H8.5zM1 8.5h6.5V15H1zM8.5 8.5H15V15H8.5z"/></svg><b>Windows</b><small>until three years ago</small></li>
+        <li class="in"><i class="icon" style="-webkit-mask-image:url(media/icons/debian.svg);mask-image:url(media/icons/debian.svg)"></i><b>Debian Testing</b><small>most of the journey</small></li>
+        <li class="in now"><i class="icon wide" style="-webkit-mask-image:url(media/icons/omarchy.svg);mask-image:url(media/icons/omarchy.svg)"></i><b>Omarchy</b><small>my laptops and desktops, since the first release</small></li>
+        <li class="in now"><i class="icon" style="-webkit-mask-image:url(media/icons/debian.svg);mask-image:url(media/icons/debian.svg)"></i><b>Debian Stable</b><small>every one of my servers</small></li>
+      </ol>
+    </div>
+  </template>
+  <template id="tpl-fetch">
+    <div class="panel term">
+      <header><i></i><i></i><i></i><span>ghostty · ~ · neofetch</span></header>
+      <div class="fetch">
+<pre class="logo in">██████████████████████████████████████████████████████
+██████████████████████████████████████████████████████
+████                     ████                     ████
+████                     ████                     ████
+████    █████████████████████         ████████    ████
+████    █████████████████████         ████████    ████
+████    ████                              ████    ████
+████    ████                              ████    ████
+████    ████                              ████    ████
+████    ████                              ████    ████
+████    ████                              ████    ████
+████    ████                              ████    ████
+████████████                              ████    ████
+████████████                              ████    ████
+████    ████                              ████    ████
+████    ████                              ████    ████
+████    ████                              ████    ████
+████    ████                              ████    ████
+████    ████                              ████    ████
+████    ████                              ████    ████
+████    ██████████████████████████████████████    ████
+████    ██████████████████████████████████████    ████
+████                     ████                     ████
+████                     ████                     ████
+█████████████████████████████     ████████████████████
+█████████████████████████████     ████████████████████</pre>
+        <dl>
+          <div class="in"><dt>OS</dt><dd>Omarchy 4.0 · Arch Linux</dd></div>
+          <div class="in"><dt>Kernel</dt><dd>6.19.8-arch1-3-surface</dd></div>
+          <div class="in"><dt>WM</dt><dd>Hyprland 0.56 (Wayland)</dd></div>
+          <div class="in"><dt>Theme</dt><dd>Moonbound</dd></div>
+          <div class="in"><dt>Terminal</dt><dd>Ghostty 1.4</dd></div>
+          <div class="in"><dt>Editor</dt><dd>Neovim 0.12</dd></div>
+          <div class="in"><dt>Host</dt><dd>Surface Laptop 5</dd></div>
+          <div class="in"><dt>CPU</dt><dd>Intel Core i5-1235U (12)</dd></div>
+          <div class="in"><dt>Packages</dt><dd>1381 (pacman), 13 (flatpak)</dd></div>
+          <div class="in"><dt>OS age</dt><dd>413 days</dd></div>
+          <div class="in swatches"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+        </dl>
+      </div>
+    </div>
+  </template>
+  <template id="tpl-langs">
+    <div class="panel tongues">
+      <h2>Daily Drivers</h2>
+      <ul class="big">
+        <li class="in"><i class="icon" style="-webkit-mask-image:url(media/icons/python.svg);mask-image:url(media/icons/python.svg)"></i>Python</li>
+        <li class="in"><i class="icon" style="-webkit-mask-image:url(media/icons/javascript.svg);mask-image:url(media/icons/javascript.svg)"></i>JavaScript</li>
+        <li class="in"><i class="icon" style="-webkit-mask-image:url(media/icons/rust.svg);mask-image:url(media/icons/rust.svg)"></i>Rust</li>
+      </ul>
+      <h2>Learning system programming specifically for the Linux desktop</h2>
+      <ul>
+        <li class="in"><i class="icon" style="-webkit-mask-image:url(media/icons/lua.svg);mask-image:url(media/icons/lua.svg)"></i>Lua</li>
+        <li class="in"><i class="icon" style="-webkit-mask-image:url(media/icons/c.svg);mask-image:url(media/icons/c.svg)"></i>C</li>
+        <li class="in"><i class="icon" style="-webkit-mask-image:url(media/icons/cplusplus.svg);mask-image:url(media/icons/cplusplus.svg)"></i>C++</li>
+        <li class="in"><i class="icon" style="-webkit-mask-image:url(media/icons/qt.svg);mask-image:url(media/icons/qt.svg)"></i>Qt / QML</li>
+      </ul>
+    </div>
+  </template>
+  <template id="tpl-scripts">
+    <div class="panel scripts">
+      <div class="term in">
+        <header><i></i><i></i><i></i><span>bash</span></header>
+        <pre><span class="p">$</span> du -ah . | sort -rh | head -5</pre>
+      </div>
+      <div class="term in">
+        <header><i></i><i></i><i></i><span>pwsh</span></header>
+        <pre><span class="p">PS&gt;</span> Get-ChildItem -Recurse -File |
+      Sort-Object Length -Descending |
+      Select-Object -First 5 Name, Length</pre>
+      </div>
+      <p class="in">Take your pick: the five biggest files in a folder. One is efficient, the other easy to understand</p>
+    </div>
+  </template>
+  <template id="tpl-machines">
+    <div class="panel forge">
+      <figure class="in">
+        <svg viewBox="0 0 120 80" aria-hidden="true"><rect x="22" y="8" width="76" height="50" rx="3"/><rect x="26" y="12" width="68" height="42" rx="1"/><path d="M10 64h100l-6 8H16z"/><path d="M48 64h24"/><circle cx="60" cy="10" r=".8"/></svg>
+        <figcaption><b>Surface Laptop 5</b><span>my client, and I love it</span></figcaption>
+      </figure>
+      <figure class="in">
+        <svg viewBox="0 0 120 80" aria-hidden="true"><rect x="36" y="6" width="48" height="68" rx="4"/><g class="tiles"><rect x="41" y="11" width="11" height="11"/><rect x="54.5" y="11" width="11" height="11"/><rect x="68" y="11" width="11" height="11"/><rect x="41" y="24.5" width="11" height="11"/><rect x="54.5" y="24.5" width="11" height="11"/><rect x="68" y="24.5" width="11" height="11"/><rect x="41" y="38" width="11" height="11"/><rect x="54.5" y="38" width="11" height="11"/><rect x="68" y="38" width="11" height="11"/><rect x="41" y="51.5" width="11" height="11"/><rect x="54.5" y="51.5" width="11" height="11"/><rect x="68" y="51.5" width="11" height="11"/></g><circle cx="60" cy="68.5" r="1.6"/></svg>
+        <figcaption><b>Framework Desktop</b><span>server</span></figcaption>
+      </figure>
+      <figure class="in">
+        <svg viewBox="0 0 120 80" aria-hidden="true"><path d="M30 34h60a8 8 0 0 1 8 8v12a6 6 0 0 1-6 6H28a6 6 0 0 1-6-6V42a8 8 0 0 1 8-8z"/><rect x="34" y="48" width="5" height="2.4" rx="1.2"/><rect x="42" y="48" width="5" height="2.4" rx="1.2"/><circle cx="52" cy="49.2" r="1.3"/><circle cx="88" cy="49.2" r=".9"/><path d="M40 60h40"/></svg>
+        <figcaption><b>Mac mini</b><span>server</span></figcaption>
+      </figure>
+      <figure class="in">
+        <svg viewBox="0 0 120 80" aria-hidden="true"><rect x="28" y="30" width="64" height="32" rx="4"/><path d="M28 38h64"/><rect x="36" y="46" width="7" height="3.5"/><rect x="46" y="46" width="7" height="3.5"/><rect x="56" y="46" width="5" height="2.6" rx="1.3"/><circle cx="84" cy="48" r="2.4"/></svg>
+        <figcaption><b>Intel NUC</b><span>server</span></figcaption>
+      </figure>
+    </div>
+  </template>
+  <template id="tpl-keep">
+    <div class="panel keep">
+      <h2>Running locally <small>up · healthy</small></h2>
+      <ul>
+        <li class="in"><i class="icon" style="-webkit-mask-image:url(media/icons/immich.svg);mask-image:url(media/icons/immich.svg)"></i><b>Immich</b><span>photos and videos</span></li>
+        <li class="in"><i class="icon" style="-webkit-mask-image:url(media/icons/plex.svg);mask-image:url(media/icons/plex.svg)"></i><b>Plex</b><span>films and series</span></li>
+        <li class="in"><i class="icon" style="-webkit-mask-image:url(media/icons/forgejo.svg);mask-image:url(media/icons/forgejo.svg)"></i><b>Forgejo</b><span>git forge</span></li>
+        <li class="in"><i class="icon" style="-webkit-mask-image:url(media/icons/penpot.svg);mask-image:url(media/icons/penpot.svg)"></i><b>Penpot</b><span>design and prototyping</span></li>
+        <li class="in"><span class="glyph">ᛒ</span><b>Bifrost</b><span>gateway to the models</span></li>
+        <li class="in"><i class="icon" style="-webkit-mask-image:url(media/icons/portainer.svg);mask-image:url(media/icons/portainer.svg)"></i><b>Portainer</b><span>keeps an eye on the containers</span></li>
+      </ul>
+      <p class="in">…and many more.</p>
+    </div>
+  </template>
+  <template id="tpl-agents">
+    <div class="panel familiars">
+      <figure class="in"><i class="icon" style="-webkit-mask-image:url(media/icons/claude.svg);mask-image:url(media/icons/claude.svg)"></i><b>Claude</b><span>agentic work</span></figure>
+      <figure class="in"><i class="icon" style="-webkit-mask-image:url(media/icons/openai.svg);mask-image:url(media/icons/openai.svg)"></i><b>Codex</b><span>agentic work</span></figure>
+      <figure class="in local"><i class="icon" style="-webkit-mask-image:url(media/icons/qwen.svg);mask-image:url(media/icons/qwen.svg)"></i><b>Pi + Qwen</b><span>privacy-sensitive work</span></figure>
+    </div>
+  </template>
+  <template id="tpl-daily">
+    <div class="panel familiars">
+      <figure class="in"><i class="icon" style="-webkit-mask-image:url(media/icons/zenbrowser.svg);mask-image:url(media/icons/zenbrowser.svg)"></i><b>Zen</b><span>browser</span></figure>
+      <figure class="in"><i class="icon" style="-webkit-mask-image:url(media/icons/vivaldi.svg);mask-image:url(media/icons/vivaldi.svg)"></i><b>Vivaldi</b><span>browser</span></figure>
+      <figure class="in"><i class="icon" style="-webkit-mask-image:url(media/icons/ghostty.svg);mask-image:url(media/icons/ghostty.svg)"></i><b>Ghostty</b><span>terminal</span></figure>
+    </div>
+  </template>
+  <template id="tpl-cli">
+    <div class="panel term">
+      <header><i></i><i></i><i></i><span>ghostty · ~ · cat favourites</span></header>
+      <ol class="cli">
+        <li class="in"><b>tmux</b><span>sessions that outlive the window</span></li>
+        <li class="in"><b>zoxide</b><span>cd, but it remembers</span></li>
+        <li class="in"><b>shell_gpt</b><span>an LLM in the pipe</span></li>
+        <li class="in"><b>ripgrep</b><span>search everything, instantly</span></li>
+        <li class="in"><b>fzf</b><span>fuzzy-find anything</span></li>
+        <li class="in"><b>httpie</b><span>HTTP for humans</span></li>
+        <li class="in"><b>lazygit</b><span>git without the typing</span></li>
+        <li class="in"><b>jq</b><span>bend JSON to your will</span></li>
+        <li class="in"><b>tldr</b><span>man pages, minus the novel</span></li>
+        <li class="in"><b>glow</b><span>markdown, beautifully rendered</span></li>
+      </ol>
+    </div>
+  </template>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

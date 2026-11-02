@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>The Library</title>
+  <meta name="description" content="Mark Priem on reading: mostly science fiction and fantasy, from Dune and The Expanse to Stormlight and The Witcher. His Goodreads shelves, as a bookcase.">
+  <meta property="og:title" content="The Library · Mark Priem">
+  <meta property="og:description" content="Mostly spaceships and dragons. Every book I have read, on one bookcase.">
+  <meta name="theme-color" content="#0d0b14">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230d0b14'/%3E%3Crect x='6' y='8' width='5' height='17' rx='1' fill='%2366d2df'/%3E%3Crect x='12' y='5' width='6' height='20' rx='1' fill='%23e6aa4c'/%3E%3Crect x='19' y='10' width='4' height='15' rx='1' fill='%23cf5a50'/%3E%3Crect x='23.5' y='9' width='3' height='16' rx='1' fill='%23e6aa4c' transform='rotate(-12 25 25)'/%3E%3Crect x='4' y='25' width='24' height='2.5' rx='1' fill='%238a5a33'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="sky" aria-hidden="true"></div>
+
+  <header class="top">
+    <span class="place"><svg viewBox="0 0 32 32" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M16 9c-3-2.5-7-3-11-2.5v17c4-.5 8 0 11 2.5 3-2.5 7-3 11-2.5v-17C23 6 19 6.5 16 9zM16 9v17"/></svg>The library</span>
+    <nav class="genres" id="genres" aria-label="Genre"></nav>
+    <a class="home" href="../marks-room/?island=reading">&larr; island</a>
+  </header>
+
+  <section class="story">
+    <p class="eyebrow" id="eyebrow">Reading</p>
+    <h1>Mostly spaceships <em>and dragons.</em></h1>
+    <p class="text">I love reading, and most of what I read is science fiction or fantasy: big worlds, long series and characters you follow for thousands of pages. Arrakis and the Rocinante, Roshar and the Continent, Hogwarts and Middle-earth. Between the epics I squeeze in a thriller or two, usually with Jack Reacher or the Gray Man.</p>
+    <dl class="stats" id="stats"></dl>
+    <div class="split" id="split" aria-label="Books read per genre"></div>
+    <div class="now" id="now"></div>
+  </section>
+
+  <main class="case">
+    <div class="toolbar">
+      <div class="shelves" id="shelves" role="tablist" aria-label="Shelf"></div>
+      <div class="tools">
+        <input type="search" id="search" placeholder="Search title or author" aria-label="Search title or author">
+        <select id="sort" aria-label="Sort">
+          <option value="recent">Recent</option>
+          <option value="rating">My rating</option>
+          <option value="author">Author</option>
+          <option value="pages">Longest</option>
+          <option value="year">Published</option>
+        </select>
+        <button type="button" id="view" class="view" aria-label="Show as list" title="Show as list">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h12v1.6H2zM2 7.2h12v1.6H2zM2 11.4h12V13H2z"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="scroll" id="scroll">
+      <div class="shelf" id="books" aria-live="polite"></div>
+    </div>
+    <article class="card" id="card" hidden aria-live="polite"></article>
+  </main>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

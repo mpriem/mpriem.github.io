@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Other Worlds</title>
+  <meta name="description" content="Mark Priem on loving AR and VR: Half-Life: Alyx, Beat Saber, Superhot VR, home-made AR and VR experiments, Qoders.nl, why the Metaverse came too soon and what AI changes, and a live hand and face tracking demo in your browser.">
+  <meta property="og:title" content="Other Worlds · Mark Priem">
+  <meta property="og:description" content="A story about AR and VR, ending with a live hand and face tracking demo in your browser.">
+  <meta property="og:image" content="https://mpriem.github.io/ar-vr/media/me-beat-saber.jpg">
+  <meta name="theme-color" content="#06061a">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2306061a'/%3E%3Crect x='5' y='10' width='22' height='13' rx='5' fill='none' stroke='%2300e5ff' stroke-width='2.2'/%3E%3Ccircle cx='11.5' cy='16.5' r='2.6' fill='%23ff2bd6'/%3E%3Ccircle cx='20.5' cy='16.5' r='2.6' fill='%23ff2bd6'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@400;500;700&display=swap">
+  <link rel="preload" as="image" href="media/alyx-combine.jpg">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="world" aria-hidden="true"><img alt=""><img alt=""></div>
+  <div class="floor" aria-hidden="true"></div>
+
+  <header class="top">
+    <span class="place"><svg viewBox="0 0 32 32" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="9" width="26" height="15" rx="6"/><circle cx="11" cy="16.5" r="3"/><circle cx="21" cy="16.5" r="3"/></svg>Other worlds</span>
+    <nav class="levels" id="chapters" aria-label="Levels">
+      <button type="button" aria-label="Level 1: Play"><b>01</b><span>Play</span></button>
+      <button type="button" aria-label="Level 2: Build"><b>02</b><span>Build</span></button>
+      <button type="button" aria-label="Level 3: Qoders.nl"><b>03</b><span>Qoders.nl</span></button>
+      <button type="button" aria-label="Level 4: Too soon"><b>04</b><span>Too soon</span></button>
+      <button type="button" aria-label="Level 5: What’s next"><b>05</b><span>What’s next</span></button>
+      <button type="button" aria-label="Level 6: Try it"><b>06</b><span>Try it</span></button>
+    </nav>
+    <a class="home" id="back" href="../marks-room/?island=ar-vr">&larr; island</a>
+  </header>
+
+  <main class="stage" id="stage" aria-roledescription="carousel" aria-label="Footage and demos about AR and VR">
+    <p class="hint">Tap the panel for the next one</p>
+  </main>
+
+  <section class="story" aria-live="polite">
+    <div class="progress" aria-hidden="true"><i id="bar"></i></div>
+    <div class="heading">
+      <p class="eyebrow" data-field="eyebrow"></p>
+      <h1 data-field="title"></h1>
+    </div>
+    <p class="text" data-field="text"></p>
+    <div class="controls">
+      <button type="button" id="prev" aria-label="Previous panel"><svg viewBox="0 0 16 16"><path d="M10.5 2 4.5 8l6 6 1.2-1.2L6.9 8l4.8-4.8z"/></svg></button>
+      <button type="button" id="pause" aria-label="Pause"><svg viewBox="0 0 16 16" id="pause-icon"><path d="M4 2h3v12H4zM9 2h3v12H9z"/></svg></button>
+      <button type="button" id="next" aria-label="Next panel"><svg viewBox="0 0 16 16"><path d="M5.5 2 4.3 3.2 9.1 8l-4.8 4.8L5.5 14l6-6z"/></svg></button>
+      <span class="count" id="count"></span>
+    </div>
+  </section>
+
+  <!-- HTML panels. Their contents are sized in cqw, so they scale with the panel. -->
+  <template id="tpl-qoders">
+    <div class="qoders-card">
+      <img src="media/qoders-logo.png" alt="The Qoders Community logo" width="843" height="743">
+      <div><b>The Qoders Community</b><span>qoders.nl · AR, VR and AI for organisations</span></div>
+    </div>
+  </template>
+  <template id="tpl-hunt">
+    <div class="idea-card">
+      <div class="phone"><div class="screen park">
+        <div class="tree" style="left:6%;top:30%;width:36%"></div>
+        <div class="tree" style="right:2%;top:25%;width:44%"></div>
+        <div class="gem"></div>
+        <div class="tag" style="left:8%;top:12%">Clue 3 / 7<small>look under the old oak</small></div>
+        <div class="scan"></div>
+      </div></div>
+      <div><b>Digital treasure hunts</b><span>Clues hidden in the real world, revealed through your phone camera. For team events, city tours and anyone who likes a puzzle.</span></div>
+    </div>
+  </template>
+  <template id="tpl-onboarding">
+    <div class="idea-card">
+      <div class="phone"><div class="screen office">
+        <div class="window" style="left:10%;top:10%;width:36%;height:26%"></div>
+        <div class="window" style="left:54%;top:10%;width:36%;height:26%"></div>
+        <div class="desk" style="left:8%;top:64%;width:50%;height:6%"></div>
+        <div class="desk" style="left:62%;top:52%;width:24%;height:18%;background:#3b3b40"></div>
+        <div class="tag" style="left:6%;top:42%">☕ Coffee corner<small>stand-up at 9:30</small></div>
+        <div class="tag" style="left:10%;top:76%">Welcome aboard!<small>tap to start the tour</small></div>
+        <div class="scan"></div>
+      </div></div>
+      <div><b>Employee onboarding</b><span>Point your phone at the office and new colleagues see the story behind every room, team and coffee machine.</span></div>
+    </div>
+  </template>
+  <template id="tpl-install">
+    <div class="install-card" data-to="72" data-busy="installing" data-done="paused · too soon">
+      <header><i></i><i></i><i></i><span>installing metaverse_2022</span></header>
+      <div class="body">
+        <ul>
+          <li class="ok">✓ 3D engines</li>
+          <li class="ok">✓ hand &amp; face tracking</li>
+          <li class="ok">✓ ideas &amp; prototypes</li>
+          <li class="wait">… light, affordable hardware</li>
+          <li class="wait">… a reason to use it every day</li>
+          <li class="no">✕ metaverse hype → real value</li>
+        </ul>
+        <div class="bar"><b></b></div>
+        <div class="status"><span class="pct"></span><b class="state"></b></div>
+      </div>
+    </div>
+  </template>
+  <template id="tpl-resume">
+    <div class="install-card resume" data-from="72" data-to="96" data-busy="resuming" data-done="coming back · soon">
+      <header><i></i><i></i><i></i><span>resuming reality_v3</span></header>
+      <div class="body">
+        <ul>
+          <li class="ok">✓ AI that sees and understands your world</li>
+          <li class="ok">✓ AI that builds 3D scenes on request</li>
+          <li class="ok">✓ chips that sip power</li>
+          <li class="wait">… lighter wearables, slowly arriving</li>
+          <li class="wait">… AI-powered apps and virtual worlds</li>
+        </ul>
+        <div class="bar"><b></b></div>
+        <div class="status"><span class="pct"></span><b class="state"></b></div>
+      </div>
+    </div>
+  </template>
+  <template id="tpl-demo">
+    <div class="demo-card">
+      <video playsinline muted></video>
+      <canvas aria-label="Camera view with hand and face tracking"></canvas>
+      <div class="hud" hidden><span>face <b class="h-face">–</b> · hands <b class="h-hands">0</b></span><span>score <b class="h-score">0</b></span></div>
+      <button type="button" class="stop" hidden>stop camera</button>
+      <div class="idle">
+        <svg viewBox="0 0 64 64" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 20V12a4 4 0 0 1 4-4h8M44 8h8a4 4 0 0 1 4 4v8M56 44v8a4 4 0 0 1-4 4h-8M20 56h-8a4 4 0 0 1-4-4v-8"/>
+          <circle cx="32" cy="30" r="10"/><path d="M20 50c3-6 7-8 12-8s9 2 12 8"/>
+        </svg>
+        <button type="button" class="start">Start the camera</button>
+        <p class="msg">Runs entirely in your browser. No video leaves your device.</p>
+      </div>
+    </div>
+  </template>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
